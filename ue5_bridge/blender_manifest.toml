@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "ue5_bridge"
+version = "0.1.0"
+name = "UE5 Bridge"
+tagline = "Clean FBX export to Unreal Engine 5: skeletons, parts, animation"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Import-Export", "Animation"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Writes the FBX files into the export folder you choose"

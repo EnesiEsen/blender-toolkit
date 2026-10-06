@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "terrain_blend"
+version = "1.1.0"
+name = "Terrain Blend"
+tagline = "Blend any number of PBR texture sets with vertex group masks"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Material", "Node"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Reads the image files of the texture folders you pick"

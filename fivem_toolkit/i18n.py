@@ -1,0 +1,140 @@
+"""Turkish translation of the interface."""
+TR = {
+    "FiveM Toolkit": "FiveM Araç Seti",
+    "Doctor": "Doktor",
+    "Export": "Dışa Aktar",
+    "Target": "Hedef",
+    "Prop": "Prop",
+    "MLO / Interior": "MLO / İç Mekan",
+    "Ped / Clothing": "Ped / Kıyafet",
+    "Resource Name": "Kaynak Adı",
+    "Output Folder": "Çıktı Klasörü",
+    "Format": "Biçim",
+    "FiveM (binary)": "FiveM (binary)",
+    "CodeWalker XML": "CodeWalker XML",
+    "Selected Only": "Yalnızca Seçili",
+    "Fix Problems First": "Önce Sorunları Düzelt",
+    "Max Texture Size": "En Büyük Doku Boyutu",
+    "Triangle Warning": "Üçgen Uyarısı",
+    "One Prop per Object": "Her Obje Ayrı Prop",
+    "Collision": "Çarpışma",
+    "None": "Yok",
+    "Simplified Copy": "Sadeleştirilmiş Kopya",
+    "Convex Hull": "Dışbükey Zarf",
+    "Exact Mesh": "Birebir Mesh",
+    "Collision Triangles": "Çarpışma Üçgenleri",
+    "Generate LODs": "LOD Üret",
+    "LOD Strength": "LOD Gücü",
+    "Balanced": "Dengeli",
+    "Aggressive": "Sert",
+    "Gentle": "Yumuşak",
+    "LOD Distance Scale": "LOD Mesafe Ölçeği",
+    "Create YTYP Archetype": "YTYP Arketipi Oluştur",
+    "Convert Textures to DDS": "Dokuları DDS'e Çevir",
+    "Also Write a YTD": "YTD de Yaz",
+    "Image '{image}' is not a DDS file: FiveM needs DDS (the fix converts it).":
+        "'{image}' resmi DDS değil: FiveM DDS ister (düzeltme çevirir).",
+    "Build Props": "Prop Oluştur",
+    "Check Assets": "Varlıkları Kontrol Et",
+    "Fix": "Düzelt",
+    "Fix All": "Hepsini Düzelt",
+    "Export Resource": "Kaynağı Dışa Aktar",
+    "Sollumz is not installed or not enabled. Install it from Preferences > Get Extensions.":
+        "Sollumz kurulu değil ya da açık değil. Tercihler > Get Extensions üzerinden kur.",
+    "Select the interior collection in the outliner. Inside it: room.<name> sub-collections with the meshes, and "
+    "portal.<room>.<room> quads (limbo = outside).":
+        "Outliner'da iç mekan koleksiyonunu seç. İçinde: mesh'lerle room.<ad> alt koleksiyonları ve "
+        "portal.<oda>.<oda> dörtgenleri (limbo = dışarısı).",
+    "Select the rigged meshes. Check Assets (Doctor below) lists weight problems; Retarget Weights moves the weights "
+    "onto GTA bones without losing them.":
+        "Rig'li mesh'leri seç. Varlıkları Kontrol Et (aşağıdaki Doktor) ağırlık sorunlarını listeler; Ağırlıkları "
+        "Taşı ağırlıkları kaybetmeden GTA kemiklerine aktarır.",
+    "GTA Skeleton": "GTA İskeleti",
+    "Keep Weight Backup": "Ağırlık Yedeğini Tut",
+    "Mapping Sheet": "Eşleme Sayfası",
+    "Create Mapping Sheet": "Eşleme Sayfası Oluştur",
+    "Retarget Weights": "Ağırlıkları Taşı",
+    "{mapped} GTA bones used, {merged} groups merged into parent bones.":
+        "{mapped} GTA kemiği kullanıldı, {merged} grup üst kemiklere birleştirildi.",
+    "No match for: {names}": "Eşleşme yok: {names}",
+    "Mapping sheet '{name}' written: fill in the GTA bone after each '='.":
+        "'{name}' eşleme sayfası yazıldı: her '=' sonrasına GTA kemiğini yaz.",
+    "The GTA bone list needs Sollumz.": "GTA kemik listesi için Sollumz gerekli.",
+    "'{name}' has vertex groups but no Armature modifier.": "'{name}' için vertex group var ama Armature modifier yok.",
+    "'{name}': {count} vertices have no bone weight.": "'{name}': {count} köşenin kemik ağırlığı yok.",
+    "'{name}': {count} vertices use more than {limit} bones.":
+        "'{name}': {count} köşe {limit} kemikten fazlasını kullanıyor.",
+    "'{name}': the weights of {count} vertices do not add up to 1.":
+        "'{name}': {count} köşenin ağırlık toplamı 1 değil.",
+    "'{name}' has {count} empty vertex groups.": "'{name}' içinde {count} boş vertex group var.",
+    "'{name}': {count} vertex groups are not GTA bones (use Retarget Weights).":
+        "'{name}': {count} vertex group GTA kemiği değil (Ağırlıkları Taşı'yı kullan).",
+    "The bones of '{name}' have no Sollumz bone tags.": "'{name}' kemiklerinde Sollumz kemik etiketi yok.",
+    "'{name}' has no weights at all.": "'{name}' için hiç ağırlık yok.",
+    "Interior Collision": "İç Mekan Çarpışması",
+    "Triangles per Mesh": "Mesh Başına Üçgen",
+    "Create Interior Template": "İç Mekan Şablonu Oluştur",
+    "Check Interior": "İç Mekanı Kontrol Et",
+    "Build Interior": "İç Mekanı Oluştur",
+    "Created '{name}': rename the rooms, replace the shells with your models.":
+        "'{name}' oluşturuldu: odaları yeniden adlandır, kabukları kendi modellerinle değiştir.",
+    "{count} layout problems.": "{count} yerleşim sorunu.",
+    "Portal '{name}' must be named portal.<room>.<room>.":
+        "'{name}' portalı portal.<oda>.<oda> biçiminde adlandırılmalı.",
+    "Portal '{name}' must be a single quad (4 vertices, 1 face).":
+        "'{name}' portalı tek bir dörtgen olmalı (4 köşe, 1 yüz).",
+    "No room.<name> sub-collections found in '{name}'.": "'{name}' içinde room.<ad> alt koleksiyonu bulunamadı.",
+    "'{name}' is in two rooms ({a}, {b}).": "'{name}' iki odada birden ({a}, {b}).",
+    "Portal '{name}' refers to the unknown room '{room}'.":
+        "'{name}' portalı bilinmeyen '{room}' odasına işaret ediyor.",
+    "No entrance: add a portal between '{limbo}' and one of the rooms.":
+        "Giriş yok: '{limbo}' ile odalardan biri arasına portal ekle.",
+    "No portals found: add portal.<room>.<room> quads.": "Portal bulunamadı: portal.<oda>.<oda> dörtgenleri ekle.",
+    "The limbo room can hold {limit} objects at most.": "Limbo odası en fazla {limit} obje taşıyabilir.",
+    "Fix the layout first: {list}": "Önce yerleşimi düzelt: {list}",
+    "The rooms contain no meshes.": "Odalarda mesh yok.",
+    "Sollumz did not create the MLO archetype.": "Sollumz MLO arketipini oluşturmadı.",
+    "MLO '{name}': {rooms} rooms, {portals} portals, {entities} entities":
+        "MLO '{name}': {rooms} oda, {portals} portal, {entities} entity",
+    "Ped tools arrive in the next step of this add-on.": "Ped araçları bu eklentinin sonraki adımında gelecek.",
+    "Sollumz is not installed or not enabled (Preferences > Get Extensions > Sollumz).":
+        "Sollumz kurulu değil ya da açık değil (Tercihler > Get Extensions > Sollumz).",
+    "'{name}' is not a valid asset name (use lowercase letters, digits and underscores).":
+        "'{name}' geçerli bir varlık adı değil (küçük harf, rakam ve alt çizgi kullan).",
+    "'{name}' has no faces.": "'{name}' içinde yüz yok.",
+    "'{name}' has unapplied scale or rotation.": "'{name}' için ölçek ya da dönüş uygulanmamış.",
+    "'{name}' has modifiers that are not applied.": "'{name}' üzerinde uygulanmamış modifier var.",
+    "'{name}' has no UV map.": "'{name}' için UV haritası yok.",
+    "'{name}' has an empty material slot or none.": "'{name}' için malzeme yok ya da boş slot var.",
+    "'{name}' has material slots no face uses.": "'{name}' içinde hiçbir yüzün kullanmadığı malzeme slotları var.",
+    "'{name}' has {tris} triangles (limit {limit}).": "'{name}' {tris} üçgen içeriyor (sınır {limit}).",
+    "A texture node in '{material}' has no image.": "'{material}' içindeki bir doku düğümünde resim yok.",
+    "Image '{image}' is missing on disk.": "'{image}' resmi diskte yok.",
+    "Image '{image}' is {w}x{h}: use a power of two up to {limit}.":
+        "'{image}' resmi {w}x{h}: {limit} değerine kadar 2'nin kuvveti kullan.",
+    "{count} assets would be exported as '{name}'.": "{count} varlık '{name}' adıyla dışa aktarılırdı.",
+    "'{name}' has children: apply its scale and rotation by hand.":
+        "'{name}' alt objeler içeriyor: ölçek ve dönüşü elle uygula.",
+    "This problem cannot be fixed automatically.": "Bu sorun otomatik düzeltilemez.",
+    "{count} problems found.": "{count} sorun bulundu.",
+    "No problems found.": "Sorun bulunamadı.",
+    "{fixed} fixed, {left} left.": "{fixed} düzeltildi, {left} kaldı.",
+    "Select the mesh objects that should become props.": "Prop olacak mesh objelerini seç.",
+    "{count} problems fixed": "{count} sorun düzeltildi",
+    "Fix these first: {list}": "Önce bunları düzelt: {list}",
+    "Sollumz could not convert the selection.": "Sollumz seçimi dönüştüremedi.",
+    "{count} LOD meshes": "{count} LOD mesh",
+    "collision: {mode}": "çarpışma: {mode}",
+    "YTYP archetypes": "YTYP arketipleri",
+    "{count} texture dictionaries": "{count} doku sözlüğü",
+    "no YTD (update Sollumz to 2.8.3 or newer)": "YTD yok (Sollumz'u 2.8.3 veya daha yeniye güncelle)",
+    "{count} props built: {notes}": "{count} prop oluşturuldu: {notes}",
+    "Sollumz did not create the collision of '{name}'.": "Sollumz '{name}' için çarpışma oluşturmadı.",
+    "Choose an output folder first.": "Önce bir çıktı klasörü seç.",
+    "There is nothing to export: build a prop first.": "Dışa aktarılacak bir şey yok: önce prop oluştur.",
+    "Sollumz could not export; open the Info Log for details.":
+        "Sollumz dışa aktaramadı; ayrıntı için Info Log'u aç.",
+    "Exported {count} files to {path}": "{count} dosya {path} konumuna aktarıldı",
+}
+
+translations = {"tr_TR": {("*", key): value for key, value in TR.items()}}
