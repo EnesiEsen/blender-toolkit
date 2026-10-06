@@ -18,8 +18,8 @@ karıştırma, her modele retopoloji, FiveM'e prop ve karakter aktarma, Unreal E
 
 ## Kurulum
 
-1. İstediğin eklentinin `.zip` dosyasını [Releases](../../releases) sayfasından indir (ya da kendin üret:
-   [CONTRIBUTING.md](CONTRIBUTING.md)).
+1. İstediğin eklentinin `.zip` dosyasını [`dist`](dist/) klasöründen indir (dosyayı aç, indirme düğmesine bas), ya da
+   kendin üret: [CONTRIBUTING.md](CONTRIBUTING.md).
 2. Blender'da **Edit > Preferences > Get Extensions** aç, sağ üstteki aşağı ok menüsünden **Install from Disk...**
    seç ve zip'i göster. Zip'i açma.
 3. Eklentinin kutusunun işaretli olduğundan emin ol. Paneli 3B görünümün yan çubuğunda (`N` tuşu), eklentinin adını

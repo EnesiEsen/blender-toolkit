@@ -18,8 +18,8 @@ retopologizing any model, getting props and characters into FiveM, and exporting
 
 ## Install
 
-1. Download the `.zip` of an add-on from the [Releases](../../releases) page (or build it yourself, see
-   [CONTRIBUTING.md](CONTRIBUTING.md)).
+1. Download the `.zip` of an add-on from the [`dist`](dist/) folder (open the file and press the download button), or
+   build it yourself, see [CONTRIBUTING.md](CONTRIBUTING.md).
 2. In Blender: **Edit > Preferences > Get Extensions**, open the drop-down arrow in the top-right corner and choose
    **Install from Disk...**, then pick the zip. Do not unzip it.
 3. Make sure the add-on is ticked. Its panel appears in the 3D viewport sidebar (press `N`), in a tab with the add-on's
