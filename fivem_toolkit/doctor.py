@@ -21,6 +21,8 @@ def issue(severity, code, ob, message, data=""):
 
 def is_asset_root(ob):
     """Objects whose name becomes the asset name: Sollumz roots and plain meshes that are about to be converted."""
+    if compat.kind(ob) == compat.COMPOSITE:  # a collision parented to a drawable is embedded in it, not an asset
+        return ob.parent is None
     if compat.kind(ob) in ROOT_TYPES:
         return ob.parent is None or compat.kind(ob.parent) != compat.FRAGMENT
     return ob.type == "MESH" and compat.kind(ob) == "sollumz_none"

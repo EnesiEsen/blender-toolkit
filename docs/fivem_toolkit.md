@@ -18,6 +18,150 @@ conversion; this add-on prepares your scene for it and drives it.
 The panel is in the sidebar tab **FiveM**. Choose what you are making with **Prop**, **MLO / Interior** or
 **Ped / Clothing**. The **Doctor** and **Export** sub-panels are shared.
 
+## Step-by-step guide
+
+This part explains three workflows with examples: a **prop**, an **MLO / interior** and a **ped / clothing** piece. The
+yellow numbers in the pictures match the numbers in the text. The pictures were taken with Blender 5.2 and Sollumz 2.8.3.
+
+> **Enable Sollumz first.** In *Edit > Preferences > Add-ons* type `Sollumz` and tick its box. If it is not enabled the FiveM
+> panel shows a red notice. **Where is the panel?** In the 3D view press `N` to open the sidebar and click the **FiveM** tab
+> (in the screenshots it appears under the *Item* tab because of how the pictures were taken).
+
+### A. Your first prop: from crate to game
+
+**1. Prepare the model.**
+
+- Model it at **real size**: 1 Blender unit = 1 meter. A crate is about 1 meter.
+- The **origin** (the yellow dot of the object) is the pivot in game; put it at the center of the prop's base.
+- In the material connect an **Image Texture** to the *Base Color* of the **Principled BSDF**. PNG and JPG are fine, the add-on
+  converts them to DDS.
+
+**2. Check and fix with the Doctor.**
+
+![The Doctor on a broken crate](images/steps/fivem-1-doctor.png)
+
+1. Select the mesh and click **Prop** in the **FiveM** tab (1).
+2. Press **Check Assets** (2). Here the crate is named `My Crate.001`, its scale is not applied, it has a Bevel modifier, no
+   UV map and no material. Every problem is listed in plain words.
+3. Fix all the safe ones with **Fix All** (3) or one by one with **Fix** (4). The name becomes `my_crate`, scale and modifier
+   are applied, a box-projected UV map and a default material are added.
+4. Problems that cannot be fixed automatically (a missing texture file, too many triangles, an empty mesh) stay in the list;
+   solve those yourself.
+
+**3. Build the prop.**
+
+![The built prop and its hierarchy](images/steps/fivem-2-prop.png)
+
+1. Look at the settings below and press **Build Props** (where 5 is placed in the previous picture; the button is grey when the
+   selected object is the prop that was already built):
+
+| Setting | Recommended | What it does |
+|---|---|---|
+| Collision (3) | *Simplified Copy* | Low-poly collision. Use *Convex Hull* for stones and rocks, *Exact Mesh* for structures you walk inside |
+| Collision Triangles | 300 | Enough for a simple prop |
+| Generate LODs (4) | On | Versions with fewer triangles for distance |
+| LOD Strength / LOD Distance Scale | Balanced / 1.00 | Raise the distance scale on large props |
+| Create YTYP Archetype (5) | On | The game needs it to know the prop |
+| Convert Textures to DDS (6) | On | FiveM needs DDS |
+| Fix Problems First | On | Runs the Doctor's safe fixes first |
+
+2. The result shows in the Outliner on the right: **1** `barrel.col` (the collision embedded in the prop), **2** `barrel.model`
+   (the visible mesh with its LODs). The top `barrel` is the Sollumz **drawable**. The material was converted to a Sollumz shader.
+3. Run the Doctor again: it should come out clean.
+
+**4. Export.**
+
+1. In the **Export** section of the same panel (7) enter **Resource Name** (for example `my_props`) and **Output Folder**.
+   **Format**: *FiveM (binary)*.
+2. Press **Export Resource**. The folder you get:
+
+```
+my_props/
+  fxmanifest.lua        introduces the resource to FiveM
+  stream/
+    barrel.ydr          model, LODs, embedded collision and textures
+    my_props.ytyp       the prop definition (archetype)
+```
+
+**5. Try it in game.**
+
+1. Copy the `my_props` folder into your server's `resources` folder and add `ensure my_props` to `server.cfg`.
+2. The prop's name in game is the lowercase asset name (`barrel`). Example of spawning it from a script:
+
+```lua
+local model = joaat('barrel')
+RequestModel(model)
+while not HasModelLoaded(model) do Wait(0) end
+local prop = CreateObject(model, coords.x, coords.y, coords.z, true, true, false)
+```
+
+> The output was checked by exporting through Sollumz and reading it back; **try your first asset in game too.**
+
+### B. MLO / interior
+
+An MLO is described by the **collection layout in the Outliner**. The add-on builds rooms, portals and collision from it.
+
+![The MLO template and its collection structure](images/steps/fivem-3-mlo.png)
+
+1. Switch to **MLO / Interior** and press **Create Interior Template** (4). The collection `my_interior` appears:
+   - **1** `room.hall` and `room.kitchen`: one sub-collection per room. The boxes in them are placeholders (`hall_shell`).
+   - **2** `portal.hall.kitchen`: the opening that joins two rooms. **3** `portal.limbo.hall`: the entrance from outside.
+2. **Fill the rooms with your own models.** Delete the placeholder boxes and move each room's meshes into its `room.<name>`
+   collection. For a new room add a new `room.<name>` sub-collection. Use lowercase letters, digits and underscores in names.
+3. **Place the portals.** A portal is a **single quad** (4 vertices, 1 face) placed in a doorway or window opening. Its name must
+   be `portal.<roomA>.<roomB>`; `limbo` is the outside. At least one portal must have `limbo` as one end (the entrance).
+4. **Click the `my_interior` collection** in the Outliner to select it; the add-on works on that collection.
+5. Press **Check Interior** (5). Problems are listed: a wrong portal name, a portal naming a room that does not exist, no
+   entrance, an object in two rooms, more than 12 objects in limbo (GTA allows 12 at most).
+6. Press **Build Interior** (6). The room meshes become props, the interior collision is built (*Interior Collision* and
+   *Triangles per Mesh*) and the MLO archetype is filled with rooms, portals and entities.
+7. Export with **Export Resource**. You get one `.ydr` per room mesh, a `.ybn` for the interior collision and a `.ytyp`.
+
+> **Placing it on the map:** This add-on does not write map placements (`.ymap`). To see the MLO in the world, create a `.ymap` in
+> CodeWalker and place the MLO archetype from the `.ytyp`. If a portal looks inverted, swap the two room names in its name.
+
+### C. Ped / clothing: moving weights onto GTA bones
+
+This workflow turns the vertex groups of a clothing or character mesh that was weighted to another rig (Mixamo, Rigify ...)
+into the **bone names of the GTA V ped skeleton**; no weight is lost.
+
+![The Doctor on a ped](images/steps/fivem-4-ped.png)
+
+1. **Get the GTA skeleton.** Import a ped YFT with Sollumz's import entry in the *File > Import* menu. Put the armature you get into the
+   **GTA Skeleton** field (1).
+2. Select the rigged meshes, switch to **Ped / Clothing** and press **Check Assets** (4). In the picture the mesh has an
+   unapplied modifier, an empty material slot and 2 empty vertex groups, and **5 vertex groups are not GTA bones** (6). The
+   vertex groups are in the Properties editor (5): `mixamorig:Hips`, `mixamorig:LeftUpLeg` ...
+3. Press **Retarget Weights** (3). The add-on guesses the match from the names (left/right, spine, fingers). A group with no
+   GTA counterpart is **merged into the nearest ancestor bone that exists**. With **Keep Weight Backup** on, a hidden backup of
+   every mesh is kept.
+4. For names it cannot guess press **Create Mapping Sheet** (2). A text block `fk_bone_map` opens and lists the unmatched groups.
+   Fill every line as `source bone = GTA bone`, for example:
+
+```
+mixamorig:LeftUpLeg = SKEL_L_Thigh
+mixamorig:RightUpLeg = SKEL_R_Thigh
+```
+
+   Then run **Retarget Weights** again; your lines replace the guesses.
+5. Repeat **Check Assets**: the "not GTA bones" warning should be gone. Each vertex may have **at most 4 bone influences** (the
+   GTA vertex format stores 4); more shows up as a warning in the Doctor.
+
+> Preparing the ped component files (`.ydd`, `.ytd`, the clothing `.ymt` metadata) is done with Sollumz's own tools; this
+> add-on prepares the weights and names. It does not write `.ymt` files.
+
+### Common problems
+
+| Symptom | Cause and fix |
+|---|---|
+| "Sollumz is not installed or not enabled" | Enable Sollumz in *Preferences > Add-ons* and restart Blender |
+| **Build Props** is grey | A **mesh** must be selected (not the already built prop) and you must be in Object Mode |
+| "Fix these first: ..." | An error cannot be fixed automatically (for example a missing texture file). Solve it first |
+| No LODs appear | The mesh has very few triangles (for example a box). Tiny meshes get no LODs; that is normal |
+| The prop is too large or small in game | Scale: 1 Blender unit = 1 meter. Bring the model to real size and let the Doctor apply the scale |
+| It does not show in game | Check that `fxmanifest.lua` and `stream/` are in place, that `ensure` is written and that the `.ytyp` is listed; read the server console errors |
+| The texture is missing in game | Textures are embedded in the `.ydr`. Keep **Convert Textures to DDS** on and keep texture sizes within **Max Texture Size** |
+
 ## Doctor: check and fix
 
 Press **Check Assets** (select the objects, or leave nothing selected to check the scene). Each problem is listed in plain

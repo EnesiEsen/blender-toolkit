@@ -2,6 +2,14 @@
 
 Each add-on has its own version. Dates are release dates in the repository.
 
+## 2026-10-07
+
+### FiveM Toolkit 0.1.1
+- Fix: the Doctor no longer reports the collision that Build Props embeds in a prop (`<name>.col`) as a badly named asset.
+
+### Documentation
+- Step-by-step guides with annotated screenshots for all four add-ons, in English and Turkish.
+
 ## 2026-10-06
 
 ### Terrain Blend 1.1.0

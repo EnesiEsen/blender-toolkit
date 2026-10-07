@@ -32,6 +32,130 @@ yerine kurar, her şeyi canlı sürgülerle ayarlanabilir bırakır.
 5. **Build / Update Material**'e bas. Materyal ve **TB Masks** modifier'ı oluşur.
 6. Sonucu **Live Settings** sürgüleriyle ayarla. Yeniden kurmak gerekmez.
 
+## Adım adım rehber: sıfırdan bir arazi
+
+Bu rehber tek bir örnekle ilerler: çimen bir zemin, içinden geçen bir patika, bir çamur lekesi ve dik yamaçta kaya.
+Görsellerdeki sarı numaralar metindeki numaralarla aynıdır. Aynı adımları kendi araziniz için uygulayın.
+
+> **Panel nerede?** 3B görünümde `N` tuşuyla yan çubuğu açın ve **Terrain Blend** sekmesine tıklayın. Ekran görüntülerinde panel,
+> görüntüleri alma yöntemi yüzünden **Item** sekmesinin altında görünür; sizin Blender'ınızda kendi sekmesindedir.
+
+### 1. Hazırlık: mesh, UV ve doku klasörleri
+
+- **Mesh sık olmalı.** Maske vertex başınadır; geçiş bölgesinde mesh ne kadar sıksa geçiş o kadar yumuşak olur. Deneme için
+  *Add > Mesh > Grid* ekleyip X ve Y Subdivisions değerini 100 – 200 yapın.
+- **UV:** Mesh'te UV haritası varsa dokular onunla kaplanır. Yoksa nesne koordinatları (Generated) kullanılır.
+- **Doku klasörleri:** Her doku setini kendi klasörüne koyun ve klasörlere vertex group adlarıyla aynı adı verin:
+
+```
+Dokular/
+  grass/  grass_Color.jpg  grass_NormalGL.jpg  grass_Roughness.jpg  grass_Displacement.jpg
+  mud/    mud_Color.jpg    ...
+  path/   path_Color.jpg   ...
+  rock/   rock_Color.jpg   ...
+```
+
+- **Taban katman:** Katmanlar klasör adına göre alfabetik eklenir ve ilk katman taban olur. Burada `grass` ilk olduğu için
+  otomatik taban olur. Taban başka bir set olacaksa katmanı sonradan okla yukarı taşıyın.
+
+### 2. Vertex group'ları oluşturun ve boyayın
+
+![Weight Paint ile patika boyama](images/steps/terrain-1-paint.png)
+
+1. Mesh'i seçin. Sağ alttaki Properties editöründe **Object Data** sekmesine (yeşil üçgen) girin, **Vertex Groups**
+   bölümünde `+` ile her yüzey için bir grup açın: `path`, `mud`, `rock`. Taban (`grass`) için grup gerekmez.
+
+   ![Vertex Groups listesi](images/steps/terrain-1-groups.png)
+
+2. Üstteki mod menüsünden **Weight Paint**'e geçin, listeden grubu seçin ve fırçayla boyayın. **Kırmızı = katman tam
+   görünür**, **mavi = görünmez** (yukarıdaki görselde 1). Patika gibi ince şeritleri elle boyamak en iyi sonucu verir.
+3. İşiniz bitince **Object Mode**'a dönün. Terrain Blend paneli (görselde 2 ile işaretli düğmelerin olduğu yer) N
+   panelinde, **Terrain Blend** sekmesindedir.
+
+> Boyamak istemediğiniz gruplar için 4. adımdaki **Generate Mask** kullanılabilir.
+
+### 3. Katmanları ekleyin
+
+1. **Add From Texture Library**'ye basın (görselde 2) ve `Dokular` klasörünü seçin.
+2. `grass`, `mud`, `path`, `rock` katmanları oluşur. Aynı adlı vertex group her katmanın maskesi olur (aşağıdaki görselde 5).
+3. Satırlara bakın: soldaki **kırmızı uyarı simgesi** katmanın doku klasörünün eksik olduğunu, sağdaki *no mask* yazısı maskenin
+   seçilmediğini gösterir. Katmanı seçip alttaki **Name / Texture / Mask** alanlarından tamamlayın.
+
+*Alternatif:* Önce vertex group'ları açtıysanız **Add From Vertex Groups** her grup için bir katman açar; doku
+klasörlerini kendiniz seçersiniz.
+
+### 4. Maskeleri otomatik üretin
+
+![Eğimden kaya maskesi](images/steps/terrain-3-slope.png)
+
+Kaya yalnızca dik yamaçlarda görünsün:
+
+1. `rock` katmanını seçin ve **Generate Mask**'e basın.
+2. Pencerede *Vertex Group* `rock`, *Source* **Slope**, *From* **25**, *To* **45** yazın ve onaylayın.
+3. Sonuç yukarıdaki görseldeki gibidir: **1** dik yer (kırmızı, kaya görünür), **2** düz yer (ağırlık 0).
+
+Başka reçeteler:
+
+| İstediğiniz | Source | From – To | Not |
+|---|---|---|---|
+| Dik yamaçta kaya | Slope | 25 – 45 (derece) | 0 = düz, 90 = dik duvar |
+| Yüksek yerde kaya ya da kar | Height | 8 – 14 (metre) | Dünya yüksekliği; nesneyi taşırsanız değişir |
+| Düz ovada çimen | Slope + **Invert** | 20 – 40 | Dik olmayan yerler |
+| Dağınık çamur lekeleri | Noise | 0.4 – 0.6 | *Noise Scale* leke boyunu, *Seed* deseni değiştirir |
+| Dik **ve** yüksek | Slope sonra Height | *Combine*: **Intersect** | İki koşulun kesişimi |
+| Dik **ya da** yüksek | Slope sonra Height | *Combine*: **Union** | İki koşulun birleşimi |
+
+Boyadığınız maske ile otomatik maskeyi birleştirmek için *Combine* seçeneğini kullanın; *Replace* eskiyi siler.
+
+### 5. Materyali kurun ve sonucu görün
+
+![Terrain Blend sonucu](images/steps/terrain-2-result.png)
+
+1. **Build / Update Material**'e basın (görselde 9). `<nesne adı> Terrain` adlı bir materyal ve **TB Masks** modifier'ı oluşur.
+2. 3B görünümü **Material Preview**'e alın (başlıktaki küre simgeleri). Sonuç yukarıdaki gibi olmalı: **1** çimen (taban),
+   **2** çamur, **3** patika, **4** kaya.
+3. Listede bir katman seçince **Live Settings** (görselde 10) o katmanın ayarlarını gösterir. Bunları değiştirmek için
+   yeniden kurmak gerekmez.
+
+### 6. Görünümü ayarlayın
+
+| Sorun | Ne yapmalı |
+|---|---|
+| Doku çok büyük ya da çok küçük | Katmanın **Scale** değeri: büyütünce doku sıklaşır (küçülür). Çimen için 40 – 80, kaya için 15 – 25 deneyin |
+| Geçişler fırça izi gibi düz | **Noise** ve **Height Influence** değerlerini artırın; kenar doku yüksekliğine göre dağılır |
+| Geçiş kenarı çok keskin | **Softness** değerini artırın |
+| Yüzey fazla düz | **Relief (m)** ve **Normal Strength** değerlerini artırın |
+| Her yerde aynı desen görünüyor | **Blend Noise Scale** değerini değiştirin, **Texture Enhancer**'ı açın |
+
+**Texture Enhancer** (görselde 8'in altındaki kutu) ek dosya gerektirmeden ince detay, çatlaklarda kir ve mikro kabartma
+ekler; sürgüleri Live Settings'in en altında *Enhancer* adıyla durur. **Lite Preview** ise yalnızca renk ve yükseklik
+haritalarını kullanır: OpenGL arka uçlu EEVEE'de (Blender 5.0) çok katmanda yüzeyin pembe görünmesini önler. Son görünüm
+için kapatın.
+
+### 7. Render alın
+
+- **EEVEE:** 49 katmana kadar çalışır. Blender 5.2'de **Preferences > System > GPU Backend: Vulkan** seçin.
+- **Cycles:** Gerçek kabartma için *Material Properties > Settings > Surface > Displacement* alanını
+  **Displacement and Bump** yapın ve mesh'in sık olduğundan emin olun.
+
+### 8. Sonradan değişiklik
+
+- **Yeni yüzey:** Yeni vertex group açın, `+` ile katman ekleyin, klasör ve maske seçin, **Build / Update Material**'e
+  basın. Sürgü değerleriniz korunur.
+- **Katman silmek veya sıra değiştirmek:** `-` ve oklar. Listede aşağıdaki katman üsttekinin üstüne boyanır.
+- **Modifier silindiyse:** **Build / Update Material** onu geri getirir.
+
+### Sık karşılaşılan sorunlar
+
+| Belirti | Sebep ve çözüm |
+|---|---|
+| Yüzey pembe | EEVEE doku sınırı aşıldı. **Lite Preview**'i açın, Vulkan'a (5.2) geçin ya da Cycles kullanın |
+| Bir katman hiç görünmüyor | Maske vertex group'u boş ya da adı yanlış. Weight Paint'te kontrol edin, katmanın **Mask** alanını doldurun |
+| "Texture ... not found" | Klasörde dosya adında `Color`, `Albedo`, `Diffuse` gibi tanınan bir sözcük yok |
+| Yüzey ters aydınlanıyor | DirectX normal haritası kullanılıyor. Klasöre OpenGL (`NormalGL`) sürümünü koyun |
+| Geçişler kare kare görünüyor | Mesh çok seyrek. Subdivide edin ya da daha sık bir grid kullanın |
+| .blend'i başkasına verince doku yok | Dokular klasörden okunur. **File > External Data > Pack Resources** kullanın |
+
 ## Panel başvurusu
 
 | Kontrol | Ne yapar |

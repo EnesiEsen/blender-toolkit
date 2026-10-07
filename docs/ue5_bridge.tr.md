@@ -14,6 +14,101 @@ kopyaları üzerinde çalışır; sahnende hiçbir şey taşınmaz, uygulanmaz y
 
 Panel, yan çubuktaki **UE5** sekmesindedir.
 
+## Adım adım rehber
+
+Bu bölüm Blender'dan Unreal Engine 5'e üç iş akışını anlatır: **statik mesh**, **iskeletli karakter** (modüler parçalarla) ve
+**animasyon** (root motion ile). Görsellerdeki sarı numaralar metindeki numaralarla aynıdır.
+
+> **Panel nerede?** 3B görünümde `N` tuşuyla yan çubuğu açın ve **UE5** sekmesine tıklayın (ekran görüntülerinde panel, görüntüleri
+> alma yöntemi yüzünden *Item* sekmesinde görünür). **Unreal tarafı:** Unreal Engine'deki adımlar Epic'in FBX içe aktarma akışını
+> izler. Bu eklentinin dosyaları Blender'a geri okunarak denetlendi, Unreal'ın kendisinde **denenmedi**.
+
+### A. Statik mesh (kaya, sandık, bina)
+
+1. Mesh'leri seçin. Modifier'lar dışa aktarmada uygulanır, siz bir şey yapmazsınız.
+2. Panelin en üstünde **Export Folder**'ı seçin (1). Burada `StaticMeshes`, `SkeletalMeshes` ve `Animations` klasörleri
+   oluşur.
+3. **UE Name Prefixes** açıkken dosyalar `SM_` ile başlar, **Center at Origin** açıkken her parça (0, 0, 0)'a konarak
+   dışa aktarılır; sahnedeki konumları değişmez.
+4. **Export Static Meshes**'a basın (7). Her mesh için bir FBX çıkar: `StaticMeshes/SM_Crate.fbx`.
+5. **Unreal'da:** *Content Browser*'a FBX'i sürükleyin ya da *Import* deyin. Statik mesh için varsayılan seçenekler yeter. Boyut
+   doğru gelir: 1 Blender metresi 100 Unreal santimetresi olur.
+
+### B. İskeletli karakter
+
+![İskelet kontrolü](images/steps/ue5-1-check.png)
+
+1. **Hazırlık.** Armature'a gerçek bir ad verin (`Armature` değil, `Hero`): Unreal bu adı bir kemik sanabilir. Objenin ölçeğini ve
+   dönüşünü uygulayın (`Ctrl+A`). Görselde armature'ın ölçeği 2, adı varsayılan ve **iki kök kemiği var** (6: `Hips` ve
+   `Prop`).
+2. Armature'ı ya da mesh'ini seçin ve **Skeleton** bölümünde **Check Skeleton**'a basın (2). Eklenti **hiçbir şeyi değiştirmeden**
+   sorunları listeler (3):
+   - *'Armature' has 2 root bones*: Unreal **tam bir** kök kemik ister.
+   - *has scale or rotation on the object*: ölçek ve dönüşü uygulayın.
+   - *keeps Blender's default name*: armature'ı yeniden adlandırın.
+3. Kök kemik sorunu için iki yol var:
+   - **Hiçbir şey yapmayın.** **Fix Skeleton on Export** açıkken eklenti dışa aktarma **kopyasında** `root` adlı tek bir kök
+     kemik ekler ve diğerlerini ona bağlar. Sahneniz değişmez.
+   - Ya da **Add Root Bone**'a basın (4): aynı düzeltmeyi gerçek iskelete uygular.
+4. Önemli seçenekler: **Only Deform Bones** (kontrol ve yardımcı kemikleri dışarıda bırakır), **Leaf Bones** (kapalı kalsın; açıksa
+   Unreal'da her zincirin ucunda hayalet kemik görünür).
+5. **Skeletal Meshes** için seçin: **One File per Mesh** modüler parçalar (pantolon, ceket, ayakkabı) içindir; hepsi aynı iskeleti
+   paylaşır ve Unreal'da birbirine oturur. **One File** her şeyi tek FBX'e koyar.
+6. **Export Skeletal Meshes**'a basın (5). Çıktı: `SkeletalMeshes/SK_Hero_body.fbx` gibi dosyalar.
+7. **Unreal'da:** FBX'i sürükleyin. İlk parçayı içe aktarırken **Skeleton** alanını *None* bırakın; Unreal iskelet asset'ini
+   kendisi oluşturur. Sonraki parçalarda **aynı iskelet asset'ini** seçin.
+
+### C. Animasyon ve root motion
+
+Önce Blender'da animasyonlarınızı **action** olarak hazırlayın (örneğin `idle`, `walk`, `run`). Kullanılmayan action'ların
+kaydedilmesi için her birine **Fake User** (kalkan simgesi) verin ya da NLA'ya yerleştirin.
+
+![Animasyon ayarları](images/steps/ue5-2-animation.png)
+
+1. Armature'ı seçin. **Animation** bölümünde kaynağı seçin (1):
+   - **All Actions**: bu iskeleti canlandıran her action bir dosya olur (önerilen).
+   - **NLA Tracks**: her NLA track'i bir dosya olur. **Active Action**: yalnızca şu an atanmış action.
+2. **Bake Step**: 1 (her karede anahtar). Tüm kemikler pişirilir.
+3. Yürüyen bir animasyonu root motion ile çıkarmak için **Root Motion**'ı açın (2). **Hips Bone** alanına (3) kalça kemiğinin
+   adını yazın (`Hips`, `pelvis`, `mixamorig:Hips` ...). Boş bırakırsanız ad `hips`/`pelvis` gibi sözcüklerden tahmin edilir.
+4. **Export Animations**'a basın (4). Çıktı: `Animations/A_Hero_walk.fbx`, her action için bir dosya.
+
+**Root motion ne yapar?**
+
+![Root motion öncesi ve sonrası](images/steps/ue5-3-root-motion.png)
+
+- **Önce:** Yürüyüş kalçanın hareketindedir; kök kemik başladığı yerde kalır. Unreal karakteri hareket ettirmek için kök kemiğe
+  bakar, bu yüzden karakter animasyonda ilerler ama dünyada yerinde durur.
+- **Sonra:** Kalçanın **yatay hareketi** (ileri, yana) her karede kök kemiğe taşınır. Kalçada yalnızca küçük sallanma kalır ve her
+  karenin nihai pozu sizin canlandırdığınızla birebir aynıdır. Unreal karakteri kök kemikle ilerletir.
+- Dönüş (yaw) çıkarılmaz; kalçada kalır.
+
+Kurallar:
+
+- Kalça ya **tek kök** olmalı (eklenti onun üstüne bir kök kemik ekler) ya da kökün **hemen altında** durmalı. Daha derindeyse
+  dışa aktarma bir mesajla durur.
+- **NLA Tracks** ile root motion kullanılamaz (track'ler birden çok action'ı harmanlayabilir); mesaj çıkar.
+
+**Unreal'da animasyon:** FBX'i sürükleyin, **Skeleton** olarak daha önce oluşan iskelet asset'ini seçin ve **Import Mesh**'i
+kapatın. Root motion için animasyon asset'ini açın, *Asset Details* altında **Enable Root Motion**'ı işaretleyin.
+
+### Doğrulama (Unreal'sız)
+
+Dışa aktarılan dosyayı Blender'a geri alarak kontrol edebilirsiniz (*File > Import > FBX*): tek kök kemik, `_end` adlı hayalet
+kemik olmaması, doğru boyut ve animasyon uzunluğu. Eklentinin testi bunu otomatik yapar.
+
+### Sık karşılaşılan sorunlar
+
+| Belirti | Sebep ve çözüm |
+|---|---|
+| Unreal fazladan bir kök kemik gösteriyor ya da karakter dönük | **Armature Node** değerini *Root* ya da *Limb Node* yapıp tekrar dışa aktarın. Unreal'da denenemeyen tek ayar budur |
+| Karakter 100 kat küçük ya da büyük | Blender sahne birim ölçeği 1 olsun, ölçeği iki kez uygulamayın. Dışa aktarma FBX Units Scale kullanır |
+| Her zincirin ucunda hayalet kemikler | **Leaf Bones** kapalı olmalı |
+| Animasyon oynuyor ama karakter ilerlemiyor | **Root Motion**'ı açıp dışa aktarın, Unreal'da animasyonda **Enable Root Motion**'ı işaretleyin |
+| "Root motion needs actions, not NLA tracks" | Kaynağı **All Actions** ya da **Active Action** yapın |
+| "Could not find the hips bone" | **Hips Bone** alanına kalça kemiğinin tam adını yazın |
+| Action dışa aktarılmadı | Action'a Fake User verin ya da armature'a atayın; boş ya da bu iskeleti canlandırmayan action'lar atlanır |
+
 ## Dışa aktarmalar neyi kullanır
 
 Bu FBX ayarları bilerek sabittir; Unreal'a doğru boyutta ve yönde girenler bunlardır: Apply Scalings = *FBX Units Scale*

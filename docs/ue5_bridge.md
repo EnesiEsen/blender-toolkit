@@ -14,6 +14,103 @@ objects, so nothing in your scene is moved, applied or renamed.
 
 The panel is in the sidebar tab **UE5**.
 
+## Step-by-step guide
+
+This part explains three workflows from Blender to Unreal Engine 5: a **static mesh**, a **skeletal character** (with modular
+parts) and an **animation** (with root motion). The yellow numbers in the pictures match the numbers in the text.
+
+> **Where is the panel?** In the 3D view press `N` to open the sidebar and click the **UE5** tab (in the screenshots it appears
+> under the *Item* tab because of how the pictures were taken). **On the Unreal side:** the steps in Unreal Engine follow Epic's
+> FBX import workflow. The files of this add-on were checked by importing them back into Blender; they were **not tried** in
+> Unreal itself.
+
+### A. Static mesh (rock, crate, building)
+
+1. Select the meshes. Modifiers are applied during export; you do nothing.
+2. At the top of the panel choose the **Export Folder** (1). The `StaticMeshes`, `SkeletalMeshes` and `Animations` folders are
+   created in it.
+3. With **UE Name Prefixes** on, files start with `SM_`; with **Center at Origin** on, every part is exported at (0, 0, 0),
+   while its place in your scene does not change.
+4. Press **Export Static Meshes** (7). One FBX per mesh: `StaticMeshes/SM_Crate.fbx`.
+5. **In Unreal:** drag the FBX into the *Content Browser* or use *Import*. The default options are fine for a static mesh. The size
+   comes out right: 1 Blender meter becomes 100 Unreal centimeters.
+
+### B. Skeletal character
+
+![Skeleton check](images/steps/ue5-1-check.png)
+
+1. **Prepare.** Give the armature a real name (`Hero`, not `Armature`): Unreal can mistake that name for a bone. Apply the
+   object's scale and rotation (`Ctrl+A`). In the picture the armature has scale 2, the default name and **two root bones**
+   (6: `Hips` and `Prop`).
+2. Select the armature or its mesh and press **Check Skeleton** in the **Skeleton** section (2). The add-on lists the problems
+   **without changing anything** (3):
+   - *'Armature' has 2 root bones*: Unreal needs **exactly one** root bone.
+   - *has scale or rotation on the object*: apply scale and rotation.
+   - *keeps Blender's default name*: rename the armature.
+3. There are two ways to fix the root bone:
+   - **Do nothing.** With **Fix Skeleton on Export** on, the add-on adds a single root bone called `root` on the export **copy**
+     and parents the others to it. Your scene does not change.
+   - Or press **Add Root Bone** (4): it applies the same fix to the real skeleton.
+4. Important options: **Only Deform Bones** (leaves control and helper bones out), **Leaf Bones** (keep it off; when on, Unreal
+   shows phantom bones at the end of every chain).
+5. For **Skeletal Meshes** choose: **One File per Mesh** is for modular parts (trousers, jacket, shoes); they all share one
+   skeleton and fit together in Unreal. **One File** puts everything in a single FBX.
+6. Press **Export Skeletal Meshes** (5). Output: files like `SkeletalMeshes/SK_Hero_body.fbx`.
+7. **In Unreal:** drag the FBX in. When importing the first part leave **Skeleton** at *None*; Unreal creates the skeleton asset.
+   For the next parts choose **the same skeleton asset**.
+
+### C. Animation and root motion
+
+First prepare your animations in Blender as **actions** (for example `idle`, `walk`, `run`). Give each one a **Fake User** (shield
+icon) or place it in the NLA so unused actions are saved.
+
+![Animation settings](images/steps/ue5-2-animation.png)
+
+1. Select the armature. In the **Animation** section choose the source (1):
+   - **All Actions**: every action that animates this skeleton becomes a file (recommended).
+   - **NLA Tracks**: every NLA track becomes a file. **Active Action**: only the action assigned right now.
+2. **Bake Step**: 1 (a key on every frame). All bones are baked.
+3. To export a walking animation with root motion turn on **Root Motion** (2). In **Hips Bone** (3) type the name of the hips bone
+   (`Hips`, `pelvis`, `mixamorig:Hips` ...). If you leave it empty the name is guessed from words like `hips` or `pelvis`.
+4. Press **Export Animations** (4). Output: `Animations/A_Hero_walk.fbx`, one file per action.
+
+**What does root motion do?**
+
+![Root motion before and after](images/steps/ue5-3-root-motion.png)
+
+- **Before:** the walk lives in the movement of the hips; the root bone stays where it started. Unreal looks at the root bone to move
+  the character, so the character advances in the animation but stands still in the world.
+- **After:** the **horizontal movement** of the hips (forward, sideways) is moved onto the root bone on every frame. Only a small
+  bobbing stays on the hips, and the final pose of every frame is exactly what you animated. Unreal moves the character with the
+  root bone.
+- Turning (yaw) is not extracted; it stays on the hips.
+
+Rules:
+
+- The hips must either be the **only root** (the add-on adds a root bone above them) or hang **directly under** the root. If they
+  are deeper the export stops with a message.
+- Root motion does not work with **NLA Tracks** (tracks can blend several actions); you get a message.
+
+**Animation in Unreal:** drag the FBX in, choose the skeleton asset that was created before as **Skeleton** and turn **Import Mesh**
+off. For root motion open the animation asset and tick **Enable Root Motion** under *Asset Details*.
+
+### Checking without Unreal
+
+You can check an exported file by importing it back into Blender (*File > Import > FBX*): a single root bone, no phantom `_end`
+bones, the right size and animation length. The add-on's test does exactly this automatically.
+
+### Common problems
+
+| Symptom | Cause and fix |
+|---|---|
+| Unreal shows an extra root bone or the character is rotated | Set **Armature Node** to *Root* or *Limb Node* and export again. It is the one setting that could not be tried in Unreal |
+| The character is 100 times too small or large | Keep the Blender scene unit scale at 1 and do not apply scale twice. The export uses FBX Units Scale |
+| Phantom bones at the end of every chain | **Leaf Bones** must be off |
+| The animation plays but the character does not advance | Turn on **Root Motion**, export, and tick **Enable Root Motion** on the animation in Unreal |
+| "Root motion needs actions, not NLA tracks" | Set the source to **All Actions** or **Active Action** |
+| "Could not find the hips bone" | Type the exact name of the hips bone in **Hips Bone** |
+| An action was not exported | Give it a Fake User or assign it to the armature; empty actions and actions that do not animate this skeleton are skipped |
+
 ## What the exports use
 
 These FBX settings are fixed on purpose, because they are the ones that import into Unreal at the right size and

@@ -148,6 +148,8 @@ else:
     check(0 < p.lod_dist_high < p.lod_dist_med < p.lod_dist_low < p.lod_dist_vlow <= 9998, "LOD distances grow")
     composite = next((c for c in barrel_d.children if compat.kind(c) == compat.COMPOSITE), None)
     check(composite is not None, "barrel has a collision composite")
+    check(composite is None or not [i for i in doctor.scan([barrel_d, composite], s) if i["code"] == "NAME"],
+          "the embedded collision is not flagged as a badly named asset")
     uv_names = [u.name for u in barrel_model.data.uv_layers]
     check("UVMap 0" in uv_names and "Color 1" in [a.name for a in barrel_model.data.color_attributes],
           f"meshes carry the names the Sollumz shaders expect: {uv_names}")

@@ -16,6 +16,105 @@ clean.
    (turn **Hide Source** off to keep it visible).
 4. Open **Quality Report** and press **Analyze Mesh** to see how clean the result is.
 
+## Step-by-step guide: retopologizing a model
+
+The example is a very dense monkey head. The same steps apply to a prop, a vehicle or a character; the differences are in
+"What to choose for which model". The yellow numbers in the pictures match the numbers in the text.
+
+> **Where is the panel?** In the 3D view press `N` to open the sidebar and click the **Retopo Kit** tab. In the screenshots the
+> panel appears under the **Item** tab because of how the pictures were taken; in your Blender it has its own tab.
+
+### 1. Preparation
+
+- Give it a **clean, closed surface.** Delete loose parts and inner faces, and merge doubled vertices with
+  *Edit Mode > Mesh > Clean Up > Merge by Distance*. Apply scale and rotation (`Ctrl+A > All Transforms`).
+- **Apply** modifiers such as Subdivision: retopology works on the mesh data, not on what the viewport shows.
+- With **QRemeshify** installed you get the best result, and only it follows guide curves. Without it Blender's QuadriFlow is
+  used; the panel tells you with a notice.
+
+### 2. One-click retopology
+
+![Source and retopology result](images/steps/retopo-1-result.png)
+
+1. Select the source model (**1** in the picture, left). Be in Object Mode.
+2. **Preset** (3): choose *Organic / Character* for a head.
+3. **Target Faces** (4): the approximate face count of the result. Here 1100.
+4. Press **Retopologize** (5). A new object `<name>_retopo` appears (**2**, right, as a wireframe). The original is hidden by
+   default; in this picture **Hide Source** is off for comparison.
+5. The **Quality Report** (6) fills in for the result:
+
+| Value | Good result | Meaning |
+|---|---|---|
+| Quad share | 95 % and up | Few triangles and n-gons. Below 90 % the panel warns you |
+| Poles 3 / 5 / 6+ | none for 6+, few for 3 and 5 | Poles are the knots of the edge flow; there should be few, well placed |
+| Edge length variation | under 25 % | How even the quads are |
+| Distance to source | under 1 % | How close the result is to the source. If it is large, raise Target Faces |
+| Non-manifold | 0 | No holes or doubled edges |
+
+If the result is not good enough change the **Preset** or raise **Target Faces** and try again; every attempt creates a new
+`_retopo` object, so delete the old one.
+
+### 3. Steer the flow with guide curves (QRemeshify)
+
+Guides are the paths the new quads must follow: around the eyes, the mouth, fingers, door and window edges of a vehicle.
+
+![Guide curves](images/steps/retopo-2-guides.png)
+
+1. Select the source model and open the **Guides** sub-panel.
+2. Press **Draw Guide** (3). Blender creates a curve called `RK Guide` and switches to Edit Mode with the **Draw** tool. **Hold the
+   mouse button and drag** over the model: the line sticks to the surface. Every drag is a separate line; you can draw the
+   eyes and the mouth in the same curve (**1** around the eye, **2** the mouth).
+3. Press **Apply Guides** (4). The curve is turned into the shortest path along the mesh edges and those edges are marked; the
+   *Guide edges on '...'* counter in the panel (5) shows how many. Edit Mode is left automatically.
+4. **Click the model to select it again.** Retopologize works on the selected, active mesh, not on the curve.
+
+*Alternative:* In Edit Mode use **Mark Selected Edges** for edges you selected yourself; no drawing needed.
+
+**Clear Guides** removes the marks and restores the seams and sharp edges the mesh had before.
+
+### 4. Retopology with guides
+
+![Result that follows the guides](images/steps/retopo-3-follow.png)
+
+1. Set **Engine** to *QRemeshify* (3) or leave *Auto*, and keep **Use Guides** (6 in the previous picture) on.
+2. Press **Retopologize**.
+3. In the result (**2**, the wireframe head on the right) **concentric edge loops** now follow the guides around the eyes. The
+   red lines on the left (**1**) stay on the source; clean them with **Clear Guides** when you are done.
+
+Without guides the same model ends up with arbitrary triangles and knots at the eyes; loops are what lets the eyelids fold
+correctly in animation.
+
+### What to choose for which model
+
+| Model | Preset | Target Faces (approx.) | Extra tips |
+|---|---|---|---|
+| Crate, barrel, simple prop | Simple Prop | 300 - 1500 | No guides needed. Either engine works |
+| Vehicle body | Hard Surface / Vehicle | 4 000 - 10 000 | **Sharp Angle** 30. Draw guides for door gaps, window frames and lights. If the vehicle is symmetric and centered on the world origin, turn on **X** symmetry |
+| Character body | Organic / Character | 8 000 - 15 000 | Retopologize the body and the clothes as **separate objects** |
+| Character head | Organic / Character | 3 000 - 6 000 | Draw guides for eyes, mouth, nostrils and brows |
+| Sculpt or scan | Organic / Character | any density | Very dense meshes (over 90 000 triangles) are decimated automatically |
+
+Side options: **Symmetry X / Y / Z** adds a Mirror modifier to the result (the mirror center is the object origin), **Snap to
+Source** adds a Shrinkwrap so later edits stay on the source surface.
+
+### 5. After retopology
+
+- Fix the edge loops around joints (knee, elbow, shoulder) by hand for animation; retopology gives you a good **base**.
+- Unwrap the UVs and **bake** textures from the high-poly source to the low-poly (*Render Properties > Bake*, *Selected to
+  Active*).
+- Export the mesh to FiveM with the **FiveM Toolkit**, or to Unreal with the **UE5 Bridge**.
+
+### Common problems
+
+| Symptom | Cause and fix |
+|---|---|
+| The **Retopologize** button is grey | You must be in Object Mode with a mesh selected. After drawing guides click the model again |
+| "QRemeshify is not installed" | QuadriFlow is used and guide curves are ignored. Install QRemeshify |
+| The result is too dense or too sparse | **Target Faces** is approximate. Change it and retry; **Match Target** makes a second pass |
+| The result is far from the source | The mesh may have holes or non-manifold edges. Repair it with *Merge by Distance* and *Fill Holes* |
+| It takes a long time | A very dense mesh is normal; the add-on decimates anything above 90 000 triangles first |
+| Hard edges got soft | Lower **Sharp Angle** or choose the *Hard Surface* preset |
+
 ## Presets
 
 | Preset | Use it for | What it does |

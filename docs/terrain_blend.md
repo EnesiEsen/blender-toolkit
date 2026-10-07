@@ -33,6 +33,130 @@ keeps everything adjustable with live sliders.
 5. Press **Build / Update Material**. The material and the **TB Masks** modifier are created.
 6. Tune the result with the **Live Settings** sliders. Nothing needs to be rebuilt.
 
+## Step-by-step guide: a terrain from scratch
+
+This guide follows one example: a grassy ground with a path through it, a mud patch and rock on the steep slope. The
+yellow numbers in the pictures match the numbers in the text. Repeat the steps for your own terrain.
+
+> **Where is the panel?** In the 3D view press `N` to open the sidebar and click the **Terrain Blend** tab. In the screenshots the
+> panel appears under the **Item** tab because of how the pictures were taken; in your Blender it has its own tab.
+
+### 1. Preparation: mesh, UVs and texture folders
+
+- **The mesh must be dense.** A mask is per vertex, so the denser the mesh in a transition, the smoother it looks. For a
+  test, add *Add > Mesh > Grid* and set X and Y Subdivisions to 100 - 200.
+- **UVs:** If the mesh has a UV map the textures use it. Without one the object coordinates (Generated) are used.
+- **Texture folders:** One folder per texture set, named like the vertex group that will mask it:
+
+```
+Textures/
+  grass/  grass_Color.jpg  grass_NormalGL.jpg  grass_Roughness.jpg  grass_Displacement.jpg
+  mud/    mud_Color.jpg    ...
+  path/   path_Color.jpg   ...
+  rock/   rock_Color.jpg   ...
+```
+
+- **Base layer:** Layers are added in alphabetical folder order and the first one is the base. Here `grass` is first, so
+  it becomes the base. If another set should be the base, move that layer up with the arrow afterwards.
+
+### 2. Create and paint the vertex groups
+
+![Painting the path in Weight Paint](images/steps/terrain-1-paint.png)
+
+1. Select the mesh. In the Properties editor (bottom right) open the **Object Data** tab (green triangle) and, under
+   **Vertex Groups**, add one group per surface with `+`: `path`, `mud`, `rock`. The base (`grass`) needs no group.
+
+   ![Vertex Groups list](images/steps/terrain-1-groups.png)
+
+2. Switch to **Weight Paint** in the mode menu, pick the group in the list and paint. **Red = the layer is fully visible**,
+   **blue = invisible** (1 in the picture above). Thin shapes like a path are best painted by hand.
+3. When you are done go back to **Object Mode**. The Terrain Blend panel (the buttons marked 2) is in the N sidebar, on the
+   **Terrain Blend** tab.
+
+> For groups you do not want to paint, use **Generate Mask** in step 4.
+
+### 3. Add the layers
+
+1. Press **Add From Texture Library** (2) and choose the `Textures` folder.
+2. The layers `grass`, `mud`, `path`, `rock` appear. The vertex group with the same name becomes each layer's mask (5 in the
+   picture below).
+3. Look at each row: a **red warning icon** on the left means the texture folder is missing, and *no mask* on the right means
+   no vertex group is chosen. Select that layer and complete it in the **Name / Texture / Mask** fields below the list.
+
+*Alternative:* If you created the vertex groups first, **Add From Vertex Groups** adds one layer per group and you choose
+the texture folders yourself.
+
+### 4. Generate masks automatically
+
+![Rock mask from the slope](images/steps/terrain-3-slope.png)
+
+Let rock show only on steep slopes:
+
+1. Select the `rock` layer and press **Generate Mask**.
+2. In the dialog set *Vertex Group* `rock`, *Source* **Slope**, *From* **25**, *To* **45** and confirm.
+3. The result looks like the picture above: **1** steep ground (red, rock shows), **2** flat ground (weight 0).
+
+More recipes:
+
+| You want | Source | From - To | Note |
+|---|---|---|---|
+| Rock on steep slopes | Slope | 25 - 45 (degrees) | 0 = flat, 90 = vertical wall |
+| Rock or snow up high | Height | 8 - 14 (meters) | World height; it changes if you move the object |
+| Grass on flat ground | Slope + **Invert** | 20 - 40 | Everything that is not steep |
+| Scattered mud patches | Noise | 0.4 - 0.6 | *Noise Scale* sets the patch size, *Seed* changes the pattern |
+| Steep **and** high | Slope, then Height | *Combine*: **Intersect** | Both conditions together |
+| Steep **or** high | Slope, then Height | *Combine*: **Union** | Either condition |
+
+Use *Combine* to merge an automatic mask with what you painted; *Replace* overwrites the old weights.
+
+### 5. Build the material and see the result
+
+![Terrain Blend result](images/steps/terrain-2-result.png)
+
+1. Press **Build / Update Material** (9). A material named `<object name> Terrain` and the **TB Masks** modifier are created.
+2. Switch the 3D view to **Material Preview** (sphere icons in the header). The result looks like the picture: **1** grass
+   (base), **2** mud, **3** path, **4** rock.
+3. Select a layer in the list: **Live Settings** (10) shows that layer's settings. Changing them needs no rebuild.
+
+### 6. Tune the look
+
+| Problem | What to do |
+|---|---|
+| The texture is too large or too small | The layer's **Scale**: a bigger value repeats the texture more (smaller). Try 40 - 80 for grass, 15 - 25 for rock |
+| Transitions look like a flat brush stroke | Raise **Noise** and **Height Influence**; the edge then follows the texture height |
+| The transition edge is too sharp | Raise **Softness** |
+| The surface looks too flat | Raise **Relief (m)** and **Normal Strength** |
+| The same pattern shows everywhere | Change **Blend Noise Scale**, turn on **Texture Enhancer** |
+
+**Texture Enhancer** (the box under 8 in the picture) adds fine detail, crevice dirt and micro displacement without extra
+files; its sliders are at the bottom of Live Settings, named *Enhancer*. **Lite Preview** uses only the color and height
+maps: it keeps the surface from turning pink with many layers on the OpenGL EEVEE backend (Blender 5.0). Switch it off for
+the final look.
+
+### 7. Render
+
+- **EEVEE:** works up to 49 layers. In Blender 5.2 pick **Preferences > System > GPU Backend: Vulkan**.
+- **Cycles:** for real displacement set *Material Properties > Settings > Surface > Displacement* to
+  **Displacement and Bump** and make sure the mesh is dense.
+
+### 8. Changing things later
+
+- **A new surface:** Add a vertex group, add a layer with `+`, choose the folder and the mask, press
+  **Build / Update Material**. Your slider values are kept.
+- **Removing a layer or changing the order:** `-` and the arrows. A layer lower in the list is painted over the one above.
+- **If the modifier was deleted:** **Build / Update Material** puts it back.
+
+### Common problems
+
+| Symptom | Cause and fix |
+|---|---|
+| The surface is pink | The EEVEE texture limit was exceeded. Turn on **Lite Preview**, switch to Vulkan (5.2) or use Cycles |
+| A layer never shows | Its mask vertex group is empty or misnamed. Check it in Weight Paint and fill the layer's **Mask** field |
+| "Texture ... not found" | No file name in the folder contains a known word such as `Color`, `Albedo` or `Diffuse` |
+| The surface is lit upside down | A DirectX normal map is in use. Put the OpenGL (`NormalGL`) version in the folder |
+| Transitions look blocky | The mesh is too coarse. Subdivide it or use a denser grid |
+| Textures are missing on another computer | Textures are read from their folders. Use **File > External Data > Pack Resources** |
+
 ## Panel reference
 
 | Control | What it does |

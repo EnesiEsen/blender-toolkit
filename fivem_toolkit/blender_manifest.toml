@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "fivem_toolkit"
-version = "0.1.0"
+version = "0.1.1"
 name = "FiveM Toolkit"
 tagline = "One-click FiveM props, asset doctor and export (needs Sollumz)"
 maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"

@@ -18,6 +18,148 @@ Sollumz yapar, bu eklenti sahneni ona hazırlar ve onu yönetir.
 Panel, yan çubuktaki **FiveM** sekmesindedir. Ne ürettiğini **Prop**, **MLO / Interior** ya da **Ped / Clothing** ile
 seç. **Doctor** ve **Export** alt panelleri ortaktır.
 
+## Adım adım rehber
+
+Bu bölüm üç iş akışını örneklerle anlatır: **prop**, **MLO / iç mekân** ve **ped / kıyafet**. Görsellerdeki sarı numaralar
+metindeki numaralarla aynıdır. Görseller Blender 5.2 ve Sollumz 2.8.3 ile alınmıştır.
+
+> **Önce Sollumz'u etkinleştirin.** *Edit > Preferences > Add-ons* içinde `Sollumz` yazın ve kutusunu işaretleyin. Etkin
+> değilse FiveM paneli kırmızı bir uyarı gösterir. **Panel nerede?** 3B görünümde `N` tuşuyla yan çubuğu açın ve **FiveM**
+> sekmesine tıklayın (ekran görüntülerinde panel, görüntüleri alma yöntemi yüzünden *Item* sekmesinde görünür).
+
+### A. İlk prop'unuz: sandıktan oyuna
+
+**1. Modeli hazırlayın.**
+
+- **Gerçek boyutta** modelleyin: 1 Blender birimi = 1 metre. Bir sandık yaklaşık 1 metredir.
+- **Orijin** (nesnenin sarı noktası) oyundaki dönme ve yerleşme noktasıdır; prop'un tabanının ortasına koyun.
+- Materyalde **Principled BSDF**'in *Base Color* girişine bir **Image Texture** bağlayın. PNG ve JPG olabilir, DDS'e eklenti çevirir.
+
+**2. Doktor ile kontrol edin ve düzeltin.**
+
+![Doktor: bozuk bir sandık](images/steps/fivem-1-doctor.png)
+
+1. Mesh'i seçin, **FiveM** sekmesinde **Prop** düğmesine tıklayın (1).
+2. **Check Assets**'e basın (2). Burada sandığın adı `My Crate.001`, ölçeği uygulanmamış, üstünde Bevel modifier'ı var, UV'si
+   ve materyali yok. Her sorun düz cümleyle listelenir.
+3. Güvenli olanların hepsini **Fix All** ile (3), tek tek **Fix** ile (4) düzeltin. Ad `my_crate` olur, ölçek ve modifier
+   uygulanır, kutu izdüşümlü bir UV ve varsayılan bir materyal eklenir.
+4. Düzeltilemeyen sorunlar (eksik doku dosyası, aşırı üçgen, boş mesh) listede kalır; onları kendiniz çözün.
+
+**3. Prop'u oluşturun.**
+
+![Prop'un oluşturulmuş hâli ve hiyerarşisi](images/steps/fivem-2-prop.png)
+
+1. Aşağıdaki ayarlara bakın ve **Build Props**'a basın (görselde 5'in yeri; düğme, siz zaten oluşturulmuş prop'u seçtiğinizde gri olur):
+
+| Ayar | Önerilen | Ne yapar |
+|---|---|---|
+| Collision (3) | *Simplified Copy* | Düşük poligonlu çarpışma. Taş ve kaya için *Convex Hull*, içinde yürünecek yapılar için *Exact Mesh* |
+| Collision Triangles | 300 | Basit prop için yeterli |
+| Generate LODs (4) | Açık | Uzakta daha az üçgenli sürümler |
+| LOD Strength / LOD Distance Scale | Balanced / 1.00 | Büyük prop'larda mesafe ölçeğini artırın |
+| Create YTYP Archetype (5) | Açık | Oyunun prop'u tanıması için gerekli |
+| Convert Textures to DDS (6) | Açık | FiveM DDS ister |
+| Fix Problems First | Açık | Doktor'un güvenli düzeltmelerini önce yapar |
+
+2. Sonuç sağdaki Outliner'da görünür: **1** `barrel.col` (prop'un içine gömülü çarpışma), **2** `barrel.model` (görünen mesh,
+   LOD'larıyla). En üstteki `barrel` Sollumz'un **drawable**'ıdır. Materyal Sollumz shader'ına çevrilmiştir.
+3. Doktor'u tekrar çalıştırın: temiz çıkmalı.
+
+**4. Dışa aktarın.**
+
+1. Aynı panelin **Export** bölümünde (7) **Resource Name** (ör. `my_props`) ve **Output Folder** girin. **Format**:
+   *FiveM (binary)*.
+2. **Export Resource**'a basın. Çıkan klasör:
+
+```
+my_props/
+  fxmanifest.lua        kaynağı FiveM'e tanıtır
+  stream/
+    barrel.ydr          model, LOD'lar, gömülü çarpışma ve dokular
+    my_props.ytyp       prop'un tanımı (archetype)
+```
+
+**5. Oyunda deneyin.**
+
+1. `my_props` klasörünü sunucunuzun `resources` klasörüne kopyalayın, `server.cfg` dosyasına `ensure my_props` ekleyin.
+2. Prop'un oyundaki adı küçük harfli varlık adıdır (`barrel`). Bir betikle çağırmak için örnek:
+
+```lua
+local model = joaat('barrel')
+RequestModel(model)
+while not HasModelLoaded(model) do Wait(0) end
+local prop = CreateObject(model, coords.x, coords.y, coords.z, true, true, false)
+```
+
+> Bu çıktı Sollumz üzerinden dışa aktarılıp geri okunarak denetlendi; ilk varlığınızı **oyunda da deneyin**.
+
+### B. MLO / iç mekân
+
+MLO'da yapı, **Outliner'daki koleksiyon düzeniyle** tarif edilir. Eklenti bu düzenden odaları, portalları ve çarpışmayı kurar.
+
+![MLO şablonu ve koleksiyon yapısı](images/steps/fivem-3-mlo.png)
+
+1. **MLO / Interior** sekmesine geçin ve **Create Interior Template**'e basın (4). `my_interior` koleksiyonu oluşur:
+   - **1** `room.hall` ve `room.kitchen`: her oda için bir alt koleksiyon. Yanındaki kutular yer tutucudur (`hall_shell`).
+   - **2** `portal.hall.kitchen`: iki odayı bağlayan açıklık. **3** `portal.limbo.hall`: dış mekândan içeri giriş.
+2. **Odaları kendi modelinizle doldurun.** Yer tutucu kutuları silin, her odanın mesh'lerini `room.<ad>` koleksiyonuna taşıyın.
+   Yeni oda için yeni bir `room.<ad>` alt koleksiyonu açın. Adlarda küçük harf, rakam ve alt çizgi kullanın.
+3. **Portalları yerleştirin.** Portal, kapı ya da pencere açıklığına konan **tek bir quad**'dır (4 vertex, 1 yüz). Adı
+   `portal.<odaA>.<odaB>` olmalı; `limbo` dış mekândır. En az bir portalın bir ucu `limbo` olmalı (giriş).
+4. Outliner'da **`my_interior` koleksiyonuna tıklayarak** seçin; eklenti bu koleksiyonu işler.
+5. **Check Interior**'a basın (5). Hatalar listelenir: portal adı yanlış, olmayan bir odayı adlandıran portal, giriş yok, bir
+   obje iki odada, limbo'da 12'den fazla obje (GTA en fazla 12'ye izin verir).
+6. **Build Interior**'a basın (6). Oda mesh'leri prop'a çevrilir, iç mekân çarpışması kurulur (*Interior Collision* ve
+   *Triangles per Mesh*) ve MLO archetype'ı oda, portal ve objelerle doldurulur.
+7. **Export Resource** ile dışa aktarın. Oda mesh'i başına bir `.ydr`, iç mekân çarpışması için bir `.ybn` ve bir `.ytyp` çıkar.
+
+> **Haritaya yerleştirme:** Bu eklenti harita yerleşimi (`.ymap`) yazmaz. MLO'yu haritada görmek için CodeWalker'da bir `.ymap`
+> oluşturup `.ytyp` içindeki MLO archetype'ını yerleştirmeniz gerekir. Portal yönü ters görünürse portal adındaki iki oda adını
+> yer değiştirin.
+
+### C. Ped / kıyafet: ağırlıkları GTA kemiklerine taşıma
+
+Bu iş akışı, başka bir rig'e (Mixamo, Rigify ...) ağırlıklanmış bir kıyafet ya da karakter mesh'inin vertex group'larını **GTA V
+ped iskeletinin kemik adlarına** çevirir; hiçbir ağırlık kaybolmaz.
+
+![Ped doktoru](images/steps/fivem-4-ped.png)
+
+1. **GTA iskeletini hazırlayın.** Sollumz'un içe aktarma menüsüyle (*File > Import*) bir ped YFT'sini içe aktarın. Gelen armature'ı
+   **GTA Skeleton** alanına verin (1).
+2. Rig'li mesh'leri seçin, **Ped / Clothing** sekmesine geçin ve **Check Assets**'e basın (4). Görselde mesh'in modifier'ı
+   uygulanmamış, boş materyal yuvası ve 2 boş vertex group'u var ve **5 vertex group'un adı GTA kemiği değil** (6). Vertex
+   group'lar Properties editöründe (5) görünür: `mixamorig:Hips`, `mixamorig:LeftUpLeg` ...
+3. **Retarget Weights**'e basın (3). Eklenti adlardan eşleşmeyi tahmin eder (sol/sağ, omurga, parmaklar). GTA'da karşılığı
+   olmayan grup **var olan en yakın üst kemiğe birleştirilir**. **Keep Weight Backup** açıkken her mesh'in gizli bir yedeği
+   tutulur.
+4. Tahmin edemediği adlar için **Create Mapping Sheet**'e basın (2). `fk_bone_map` adlı bir metin bloğu açılır; eşleşmeyen
+   grupları listeler. Her satırı `kaynak kemik = GTA kemiği` biçiminde doldurun, örneğin:
+
+```
+mixamorig:LeftUpLeg = SKEL_L_Thigh
+mixamorig:RightUpLeg = SKEL_R_Thigh
+```
+
+   Sonra **Retarget Weights**'i yeniden çalıştırın; sizin satırlarınız tahminlerin yerine geçer.
+5. **Check Assets**'i tekrarlayın: "GTA kemiği değil" uyarısı kalkmalı. Vertex başına **en fazla 4 kemik etkisi** olmalı
+   (GTA vertex formatı 4 tutar); fazlası Doktor'da uyarı olarak görünür.
+
+> Ped bileşen dosyalarının (`.ydd`, `.ytd`, kıyafet `.ymt` metaverisi) hazırlanması Sollumz'un kendi araçlarıyla yapılır; bu eklenti
+> ağırlıkları ve adları hazırlar. `.ymt` dosyalarını yazmaz.
+
+### Sık karşılaşılan sorunlar
+
+| Belirti | Sebep ve çözüm |
+|---|---|
+| "Sollumz is not installed or not enabled" | *Preferences > Add-ons* içinde Sollumz'u etkinleştirin ve Blender'ı yeniden başlatın |
+| **Build Props** gri | Bir **mesh** seçili olmalı (prop'un kendisi değil, ondan önceki mesh) ve Object Mode'da olmalısınız |
+| "Fix these first: ..." | Düzeltilemeyen bir hata var (ör. eksik doku dosyası). Önce onu çözün |
+| LOD oluşmuyor | Mesh çok az üçgenli (ör. bir kutu). Çok küçük mesh'lere LOD verilmez, bu normaldir |
+| Prop oyunda çok büyük ya da küçük | Ölçek: 1 Blender birimi = 1 metre. Modeli gerçek boyuta getirip Doktor'dan ölçeği uygulatın |
+| Oyunda görünmüyor | `fxmanifest.lua` ve `stream/` yerinde mi, `ensure` yazıldı mı, `.ytyp` listelendi mi kontrol edin; sunucu konsolundaki hatalara bakın |
+| Doku oyunda yok | Dokular `.ydr` içine gömülüdür. **Convert Textures to DDS** açık olsun ve doku boyutu **Max Texture Size**'ı aşmasın |
+
 ## Doktor: kontrol et ve düzelt
 
 **Check Assets**'e bas (objeleri seç; hiçbir şey seçili değilse sahne taranır). Her sorun düz cümleyle ve bir **Fix**
