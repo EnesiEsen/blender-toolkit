@@ -1,4 +1,4 @@
-# UE5 varlık hattı: oyuna hazır varlıklar için beş eklenti
+# UE5 varlık hattı: oyuna hazır varlıklar için dört eklenti
 
 [English](ue5-pipeline.md) · [Genel bakışa dön](../README.tr.md)
 
@@ -10,14 +10,13 @@ Bu eklentiler "bitmiş model" ile "Unreal Engine 5'e aktarıldı" arasındaki ad
 | [Texture Kit](#texture-kit) | Texture Kit | Doku kontrolü, normal map çevirme, ORM paketleme, Unreal adlı dışa aktarma |
 | [Texel Density](#texel-density) | Texel Density | Her varlığın doku yoğunluğunu ölç, renklendir ve ayarla |
 | [Collision Maker](#collision-maker) | Collision | UBX / USP / UCP / UCX çarpışma şekilleri, denetleyici, mesh ile birlikte dışa aktarma |
-| [Hard Surface Kit](#hard-surface-kit) | Hard Surface | Bevel, kesici, dizi, olak, temizlik, Stack'i Uygula |
 | [Game Rig Kit](#game-rig-kit) | Game Rig | UE5 mannequin iskeleti, ağırlıklandırma, IK, yeniden adlandırma, animasyon retarget |
 
-> **Bir varlık için önerilen sıra:** **Hard Surface Kit** ile modelle, **Texel Density**'yi ayarla, dokuları bake et ve
+> **Bir varlık için önerilen sıra:** modelle ([Hard Surface Kit](hardsurface_kit.tr.md) genel amaçlı bir yardımcıdır), **Texel Density**'yi ayarla, dokuları bake et ve
 > **Texture Kit** ile kontrol et, **Collision Maker** şekillerini ekle, sonra **UE5 Bridge** ile dışa aktar. Karakterde önce
 > **Game Rig Kit**, sonra aynı adımlar.
 
-Beşi de Blender 5.0.1 ve 5.2.0'da test edildi. Hiçbiri Unreal Engine'in içinde denenmedi (burada kurulu değil); kurallar
+Dördü de Blender 5.0.1 ve 5.2.0'da test edildi. Hiçbiri Unreal Engine'in içinde denenmedi (burada kurulu değil); kurallar
 Epic'in belgelerinden gelir.
 
 ## Texture Kit
@@ -72,26 +71,6 @@ mesh adı ve bir sayı gelir: `UBX_Crate_00`.
 
 Convex Parts basit bir bölme yöntemi kullanır, tam bir yaklaşık dışbükey ayrıştırma değildir; çok karmaşık şekillerde sonucu
 Unreal'ın çarpışma görünümünde kontrol et.
-
-## Hard Surface Kit
-
-Sıradan modifier'lardan kurulu, yıkıcı olmayan bir iş akışı: uygulayana kadar her şeyi değiştirebilirsin.
-
-1. **Smart Bevel**: mesh'i **Smooth Angle** üstündeki kenarlarda sert olacak şekilde pürüzsüz gölgeler, bir Bevel modifier'ı
-   (açıya ya da ağırlığa göre) ve bir Weighted Normal modifier'ı ekler, doğru sırada tutar. **Mark Sharp Edges** kenarları
-   işaretler ve bevel ağırlığı verir.
-2. **Cutters**: kesici objeleri seç, hedefi en son seç, **Use Selected as Cutters**'a bas (kes, ekle ya da kesişim).
-   Kesiciler düzenlenebilir kalır, tel kafes görünür ve hedefi izler. **New Cutter** 3B imleçte kutu ya da silindir ekler.
-   **Apply Cutters** kesimleri kalıcı yapar; **Remove Cutters** geri alır.
-3. **Mirror and Arrays**: isteğe bağlı merkezden kesmeli ayna, doğrusal dizi ve objenin orijini çevresinde **dairesel dizi**
-   (cıvata, havalandırma, tekerlek); çocuk bir empty tarafından yönlendirilir.
-4. **Grooves and Cleanup** (Edit Mode): **Groove** ve **Panel** seçili yüzleri inset edip dik duvarlarla içeri ya da dışarı iter,
-   bevel için kenarları sert işaretler. **Clean Mesh** çift vertex'leri birleştirir, serbest vertex'leri siler ve düz
-   kenarları eritir.
-5. **Apply Stack** özel normaller dahil her modifier'ı temiz bir mesh'e pişirir ve yardımcı objeleri siler. Shape key'li
-   mesh'ler atlanır.
-
-Kesiciler için etkileşimli çizim aracı yoktur; yukarıdaki araçlarla yerleştirir ve boyutlandırırsın.
 
 ## Game Rig Kit
 

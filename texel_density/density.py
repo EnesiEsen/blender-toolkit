@@ -1,5 +1,7 @@
 """Texel density maths with numpy: how many texture pixels cover one meter of surface (px/m, world space)."""
 
+import math
+
 import numpy as np
 
 COLOR_ATTRIBUTE = "TD_Density"
@@ -108,6 +110,13 @@ def analyze(obj, default_size=2048):
     }
 
 
+def suggest_size(needed):
+    """Power-of-two texture side that reaches `needed` pixels (never below 64, never above 16384)."""
+    if needed <= 0.0:
+        return 0
+    return int(min(max(2 ** math.ceil(math.log2(needed)), 64), 16384))
+
+
 def summary(data, target, tolerance_percent):
     """Numbers for the panel: min, max, average, how much of the surface is within tolerance, UV use."""
     density, valid, area = data["density"], data["valid"], data["area"]
@@ -117,6 +126,10 @@ def summary(data, target, tolerance_percent):
     band = tolerance_percent / 100.0
     ok = unwrapped & (np.abs(density - target) <= target * band)
     total = area[valid].sum()
+    uv_total = data["uv_area"][unwrapped].sum()
+    # Density grows with the texture side, so the side that hits the target with this UV layout is
+    # sqrt(target^2 * surface area / UV area).
+    needed = float(math.sqrt(target**2 * area[unwrapped].sum() / uv_total)) if uv_total > 1e-12 else 0.0
     return {
         "faces": int(len(density)),
         "average": data["average"],
@@ -126,6 +139,8 @@ def summary(data, target, tolerance_percent):
         "outside": int((~inside_tile).sum()),
         "flagged": float(100.0 * (1.0 - area[ok].sum() / total)) if total > 0 else 0.0,
         "unwrapped": int(len(density) - unwrapped.sum()),
+        "needed": needed,
+        "suggested": suggest_size(needed),
     }
 
 

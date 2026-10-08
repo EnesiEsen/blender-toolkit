@@ -8,18 +8,36 @@ modeling, texel density, textures, collision, rigging and FBX export), and a bru
 
 [Türkçe README](README.tr.md)
 
+### General-purpose tools
+
+These work in any Blender project and have nothing to do with a game engine.
+
 | Add-on | What it does | Guide |
 |---|---|---|
 | **Terrain Blend** | Blend any number of PBR texture sets on one mesh, using vertex groups as masks. Auto masks from slope, height or noise. | [docs/terrain_blend.md](docs/terrain_blend.md) |
+| **Scatter Brush** | Scatter grass, rocks and trees where you weight paint, or with a click brush. Categories, model chances, slope, height and keep-away filters. | [docs/scatter_brush.md](docs/scatter_brush.md) |
 | **Retopo Kit** | One-click quad retopology for props, vehicles and characters, with guide curves and a quality report. | [docs/retopo_kit.md](docs/retopo_kit.md) |
-| **FiveM Toolkit** | Check, fix, build and export props, MLO interiors and ped clothing for FiveM, on top of Sollumz. | [docs/fivem_toolkit.md](docs/fivem_toolkit.md) |
+| **Hard Surface Kit** | Non-destructive bevels, cutters, arrays, grooves and an Apply Stack for game-ready meshes. | [docs/hardsurface_kit.md](docs/hardsurface_kit.md) |
+
+### Game-engine tools: Unreal Engine 5
+
+For getting finished assets into Unreal Engine 5. Each one is independent.
+
+| Add-on | What it does | Guide |
+|---|---|---|
 | **UE5 Bridge** | FBX export for Unreal Engine 5: static meshes, modular skeletal meshes, animations, root motion. | [docs/ue5_bridge.md](docs/ue5_bridge.md) |
 | **Texture Kit** | Texture checks, normal map flip, ORM packing and Unreal-named export. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#texture-kit) |
 | **Texel Density** | Measure, show as colors and set the texture density of every asset. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#texel-density) |
 | **Collision Maker** | UBX / USP / UCP / UCX collision shapes and a checker, exported with the mesh. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#collision-maker) |
-| **Hard Surface Kit** | Non-destructive bevels, cutters, arrays, grooves and an Apply Stack for game-ready meshes. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#hard-surface-kit) |
 | **Game Rig Kit** | UE5 mannequin skeleton, skinning, IK, renaming and animation retarget. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#game-rig-kit) |
-| **Scatter Brush** | Scatter grass, rocks and trees where you weight paint, or with a click brush; categories with saved randomness. | [docs/scatter_brush.md](docs/scatter_brush.md) |
+
+### FiveM
+
+On top of Sollumz, for GTA V / FiveM servers.
+
+| Add-on | What it does | Guide |
+|---|---|---|
+| **FiveM Toolkit** | Check, fix, build and export props, MLO interiors and ped clothing for FiveM, on top of Sollumz. | [docs/fivem_toolkit.md](docs/fivem_toolkit.md) |
 
 ![Terrain Blend](docs/images/terrain_blend.png)
 

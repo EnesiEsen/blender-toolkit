@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "scatter_brush"
-version = "0.1.0"
+version = "0.2.0"
 name = "Scatter Brush"
 tagline = "Scatter grass, rocks and trees: weight paint or click brush"
 maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"

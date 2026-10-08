@@ -1,4 +1,4 @@
-# UE5 asset pipeline: five add-ons for game-ready assets
+# UE5 asset pipeline: four add-ons for game-ready assets
 
 [Türkçe](ue5-pipeline.tr.md) · [Back to the overview](../README.md)
 
@@ -10,14 +10,13 @@ has its own sidebar tab; they work best together, and **UE5 Bridge** (see its gu
 | [Texture Kit](#texture-kit) | Texture Kit | Texture checks, normal map flip, ORM packing, Unreal-named export |
 | [Texel Density](#texel-density) | Texel Density | Measure, color and set the texture density of every asset |
 | [Collision Maker](#collision-maker) | Collision | UBX / USP / UCP / UCX collision shapes, a checker, exported with the mesh |
-| [Hard Surface Kit](#hard-surface-kit) | Hard Surface | Bevels, cutters, arrays, grooves, cleanup, Apply Stack |
 | [Game Rig Kit](#game-rig-kit) | Game Rig | UE5 mannequin skeleton, skinning, IK, renaming, animation retarget |
 
-> **A suggested order for one asset:** model with the **Hard Surface Kit**, set **Texel Density**, bake and check textures
+> **A suggested order for one asset:** model it (the general-purpose [Hard Surface Kit](hardsurface_kit.md) helps), set **Texel Density**, bake and check textures
 > with **Texture Kit**, add **Collision Maker** shapes, then export with **UE5 Bridge**. For characters: **Game Rig Kit**
 > first, then the same steps.
 
-All five were tested in Blender 5.0.1 and 5.2.0. None of them was tried inside Unreal Engine (it is not installed here);
+All four were tested in Blender 5.0.1 and 5.2.0. None of them was tried inside Unreal Engine (it is not installed here);
 the rules come from Epic's documentation.
 
 ## Texture Kit
@@ -72,26 +71,6 @@ by the mesh name and a number: `UBX_Crate_00`.
 
 Convex Parts uses a simple splitting method, not a full approximate convex decomposition; check the result in Unreal's
 collision view for very complex shapes.
-
-## Hard Surface Kit
-
-A non-destructive workflow built from ordinary modifiers, so you can change anything until you apply it.
-
-1. **Smart Bevel**: shades the mesh smooth with hard edges above the **Smooth Angle**, adds a Bevel modifier (limit by angle
-   or by weights) and a Weighted Normal modifier, and keeps them in the right order. **Mark Sharp Edges** marks the edges
-   and gives them bevel weights.
-2. **Cutters**: select the cutter objects and the target last, then **Use Selected as Cutters** (cut, add or intersect).
-   Cutters stay editable, are shown as wire and follow the target. **New Cutter** adds a box or cylinder at the 3D cursor.
-   **Apply Cutters** makes the cuts permanent; **Remove Cutters** undoes them.
-3. **Mirror and Arrays**: mirror with optional cut at the center, a linear array, and a **radial array** around the object's
-   origin (bolts, vents, wheels) driven by a child empty.
-4. **Grooves and Cleanup** (Edit Mode): **Groove** and **Panel** inset the selected faces and push them in or out with
-   vertical walls, marking the edges sharp for the bevel. **Clean Mesh** merges doubles, removes loose vertices and dissolves
-   flat edges.
-5. **Apply Stack** bakes every modifier, including the custom normals, into a clean mesh and deletes the helper objects.
-   Meshes with shape keys are skipped.
-
-There is no interactive draw tool for cutters; you place and size them with the tools above.
 
 ## Game Rig Kit
 

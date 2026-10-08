@@ -2,13 +2,35 @@
 
 Each add-on has its own version. Dates are release dates in the repository.
 
+## 2026-10-08
+
+### Scatter Brush 0.2.0
+- Model chances: make one model common and another rare (surface layers and click brush).
+- Place only where: maximum and minimum slope, a height band, and a mesh (road, path, building) to keep away from.
+- Viewport Density: show a share of the objects while painting; render and bake keep all of them.
+- Fix: a later surface layer no longer scatters points on the instances of an earlier layer.
+- Fix: the brush no longer keeps a pointer to its category (Blender 5.2 could hang when a category was added during a stroke).
+
+### Collision Maker 0.1.1
+- The checker reports a shape that has its own location, rotation or scale, and Fix applies it without moving the shape.
+
+### Texel Density 0.1.1
+- The report tells the texture size that reaches the target density with the current UV layout, rounded up to a power of two.
+
+### Documentation
+- Hard Surface Kit has its own guide. The README now groups the general-purpose tools (Terrain Blend, Scatter Brush, Retopo Kit,
+  Hard Surface Kit) apart from the Unreal Engine tools and FiveM.
+
+## 2026-10-07 (Scatter Brush)
+
+### New: Scatter Brush 0.1.0
+- Categories of models with saved randomness, surface layers painted by a vertex group (live Geometry Nodes, bake to objects)
+  and a click brush. See [docs/scatter_brush.md](docs/scatter_brush.md).
+
 ## 2026-10-07 (UE5 pipeline)
 
 ### New: Texture Kit 0.1.0, Texel Density 0.1.0, Collision Maker 0.1.0, Hard Surface Kit 0.1.0, Game Rig Kit 0.1.0
 - See [docs/ue5-pipeline.md](docs/ue5-pipeline.md).
-
-### New: Scatter Brush 0.1.0
-- Categories of models with saved randomness, scatter layers painted by a vertex group (live Geometry Nodes, bake to objects) and a click brush. See [docs/scatter_brush.md](docs/scatter_brush.md).
 
 ### UE5 Bridge 0.2.0
 - Static mesh export now includes the collision shapes of a mesh (UBX_, USP_, UCP_, UCX_) in the same FBX, with matching names.

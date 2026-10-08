@@ -8,18 +8,36 @@ texel yoğunluğu, dokular, çarpışma, rig ve FBX dışa aktarma) ve çimen, t
 
 [English README](README.md)
 
+### Genel amaçlı araçlar
+
+Bunlar her Blender projesinde çalışır ve bir oyun motoruyla ilgisi yoktur.
+
 | Eklenti | Ne yapar | Kılavuz |
 |---|---|---|
 | **Terrain Blend** | Tek mesh üzerinde istediğin sayıda PBR doku setini vertex group maskeleriyle karıştırır. Eğim, yükseklik veya gürültüden otomatik maske üretir. | [docs/terrain_blend.tr.md](docs/terrain_blend.tr.md) |
+| **Scatter Brush** | Weight paint ile boyadığın yere ya da tıklama fırçasıyla çimen, taş, ağaç serpiştirir. Kategoriler, model olasılıkları, eğim, yükseklik ve uzak tutma filtreleri. | [docs/scatter_brush.tr.md](docs/scatter_brush.tr.md) |
 | **Retopo Kit** | Prop, araç ve karakter için tek tıkla quad retopoloji; rehber eğriler ve kalite raporu. | [docs/retopo_kit.tr.md](docs/retopo_kit.tr.md) |
-| **FiveM Toolkit** | Sollumz üzerine kurulu: prop, MLO iç mekân ve ped kıyafeti için kontrol, düzeltme, derleme ve dışa aktarma. | [docs/fivem_toolkit.tr.md](docs/fivem_toolkit.tr.md) |
+| **Hard Surface Kit** | Yıkıcı olmayan bevel, kesici, dizi, olak ve oyuna hazır mesh için Stack'i Uygula. | [docs/hardsurface_kit.tr.md](docs/hardsurface_kit.tr.md) |
+
+### Oyun motoru araçları: Unreal Engine 5
+
+Bitmiş varlıkları Unreal Engine 5'e almak için. Her biri bağımsızdır.
+
+| Eklenti | Ne yapar | Kılavuz |
+|---|---|---|
 | **UE5 Bridge** | Unreal Engine 5 için FBX: statik mesh, modüler iskeletli mesh, animasyon, root motion. | [docs/ue5_bridge.tr.md](docs/ue5_bridge.tr.md) |
 | **Texture Kit** | Doku kontrolü, normal map çevirme, ORM paketleme ve Unreal adlı dışa aktarma. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#texture-kit) |
 | **Texel Density** | Her varlığın doku yoğunluğunu ölç, renk olarak göster ve ayarla. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#texel-density) |
 | **Collision Maker** | UBX / USP / UCP / UCX çarpışma şekilleri ve denetleyici, mesh ile birlikte dışa aktarılır. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#collision-maker) |
-| **Hard Surface Kit** | Yıkıcı olmayan bevel, kesici, dizi, olak ve oyuna hazır mesh için Stack'i Uygula. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#hard-surface-kit) |
 | **Game Rig Kit** | UE5 mannequin iskeleti, ağırlıklandırma, IK, yeniden adlandırma ve animasyon retarget. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#game-rig-kit) |
-| **Scatter Brush** | Weight paint ile boyadığın yere ya da tıklama fırçasıyla çimen, taş, ağaç serpiştirir; kategoriler ve kayıtlı rastgelelik. | [docs/scatter_brush.tr.md](docs/scatter_brush.tr.md) |
+
+### FiveM
+
+Sollumz üzerine kurulu, GTA V / FiveM sunucuları için.
+
+| Eklenti | Ne yapar | Kılavuz |
+|---|---|---|
+| **FiveM Toolkit** | Sollumz üzerine kurulu: prop, MLO iç mekân ve ped kıyafeti için kontrol, düzeltme, derleme ve dışa aktarma. | [docs/fivem_toolkit.tr.md](docs/fivem_toolkit.tr.md) |
 
 ![Terrain Blend](docs/images/terrain_blend.png)
 

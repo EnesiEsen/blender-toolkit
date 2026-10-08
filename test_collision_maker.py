@@ -252,6 +252,32 @@ bpy.ops.collision_maker.fix(index=index)
 points, volume = core.shape_volumes(dented)
 check(hulls.hull_volume(points) <= volume * 1.001, "Fix makes the shape convex")
 
+# ---- an unapplied transform on a shape is reported and applied by Fix
+moved = bpy.data.objects.new("UCX_AutoCube_08", bpy.data.meshes.new("moved"))
+sc.collection.objects.link(moved)
+moved.parent = cube
+bm = bmesh.new()
+bmesh.ops.create_cube(bm, size=2.0)
+bm.to_mesh(moved.data)
+bm.free()
+moved.location, moved.scale = (1.0, 2.0, 3.0), (2.0, 1.0, 1.0)
+bpy.context.view_layer.update()
+before = sorted(tuple(round(c, 5) for c in (moved.matrix_world @ v.co)) for v in moved.data.vertices)
+bpy.ops.collision_maker.check()
+codes = {(i.code, i.object_name) for i in sc.cm_issues}
+check(("TRANSFORM", "UCX_AutoCube_08") in codes, f"an unapplied shape transform is reported: {sorted(codes)}")
+index = next(i for i, item in enumerate(sc.cm_issues) if item.code == "TRANSFORM")
+bpy.ops.collision_maker.fix(index=index)
+bpy.context.view_layer.update()
+after = sorted(tuple(round(c, 5) for c in (moved.matrix_world @ v.co)) for v in moved.data.vertices)
+check(before == after, "Fix applies the transform without moving the shape")
+check(not core.has_own_transform(moved), "the shape's own transform is identity afterwards")
+bpy.ops.collision_maker.check()
+check(
+    ("TRANSFORM", "UCX_AutoCube_08") not in {(i.code, i.object_name) for i in sc.cm_issues},
+    "the transform report is gone after Fix",
+)
+
 # ---- remove and toggle
 select_only(crate)
 bpy.ops.collision_maker.remove()

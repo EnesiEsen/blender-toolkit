@@ -120,6 +120,8 @@ class SB_OT_assets_add(Operator):
         cat = active_category(context)
         chosen = list(context.selected_objects)
         move_objects(chosen, cat.collection)
+        layers.refresh_pick(context.scene, cat)
+        layers.sync_category(context.scene, cat)
         self.report({"INFO"}, rpt_("{count} models added to '{name}'.").format(count=len(chosen), name=cat.name))
         return {"FINISHED"}
 

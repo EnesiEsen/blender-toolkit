@@ -7,6 +7,7 @@ import bmesh
 import bpy
 import numpy as np
 from bpy.app.translations import pgettext_rpt as rpt_
+from mathutils import Matrix
 
 from . import fit, hulls, shapes
 
@@ -134,6 +135,16 @@ def issue(severity, code, obj, message, fixable=False):
     return {"severity": severity, "code": code, "object": obj.name, "message": message, "fixable": fixable}
 
 
+def has_own_transform(shape):
+    """True when a shape's location, rotation or scale differ from its parent's (the shapes made here have none)."""
+    identity = Matrix.Identity(4)
+    return any(
+        abs(a - b) > 1e-4
+        for ra, rb in zip(shape.matrix_basis, identity, strict=True)
+        for a, b in zip(ra, rb, strict=True)
+    )
+
+
 def shape_volumes(shape):
     mesh = shape.data
     points = np.array([v.co[:] for v in mesh.vertices], dtype=np.float64)
@@ -165,6 +176,18 @@ def scan(objects):
                     rpt_(
                         "'{name}' belongs to no mesh: Unreal ignores it. Parent it to its mesh or fix the name."
                     ).format(name=shape.name),
+                )
+            )
+        if shape.parent is not None and has_own_transform(shape):
+            found.append(
+                issue(
+                    WARNING,
+                    "TRANSFORM",
+                    shape,
+                    rpt_("'{name}' has its own transform: apply it so Unreal puts the shape right.").format(
+                        name=shape.name
+                    ),
+                    fixable=True,
                 )
             )
         points, volume = shape_volumes(shape)
@@ -217,8 +240,13 @@ def scan(objects):
     return found
 
 
-def fix(shape, max_vertices):
-    """Replace a shape by the (reduced) convex hull of its vertices."""
+def fix(shape, max_vertices, code="NONCONVEX"):
+    """Fix one reported problem: TRANSFORM applies the shape's own transform, anything else swaps in a convex hull."""
+    if code == "TRANSFORM":
+        shape.data.transform(shape.matrix_basis)
+        shape.matrix_basis = Matrix.Identity(4)
+        shape.data.update()
+        return
     points = np.array([v.co[:] for v in shape.data.vertices], dtype=np.float64)
     verts, faces, _ = hulls.limited_hull(points, max_vertices)
     mesh = shape.data

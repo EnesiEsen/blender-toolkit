@@ -30,6 +30,8 @@ class TD_Report(PropertyGroup):
     outside: IntProperty()
     flagged: FloatProperty()
     unwrapped: IntProperty()
+    needed: FloatProperty()
+    suggested: IntProperty()
 
 
 class TD_Settings(PropertyGroup):

@@ -21,6 +21,25 @@ def _changed(self, context):
     layers.sync_category(context.scene, self)
 
 
+def _models_changed(self, context):
+    """The model collection was swapped: rebuild the pick list, then refresh the layers."""
+    from . import layers
+
+    layers.refresh_pick(context.scene, self)
+    layers.sync_category(context.scene, self)
+
+
+def _weight_changed(self, context):
+    """A model's chance changed: rebuild the pick list of every category that holds it."""
+    from . import layers
+
+    layers.model_weight_changed(context.scene, self)
+
+
+def _is_mesh(self, ob):
+    return ob.type == "MESH"
+
+
 class SB_Category(PropertyGroup):
     name: StringProperty(name="Name", default="Category")
     uid: IntProperty(default=0)
@@ -28,7 +47,12 @@ class SB_Category(PropertyGroup):
         name="Assets",
         type=bpy.types.Collection,
         description="Collection that holds the models of this category",
-        update=_changed,
+        update=_models_changed,
+    )
+    pick: PointerProperty(
+        name="Pick List",
+        type=bpy.types.Collection,
+        description="Hidden collection that repeats each model by its chance (empty when all chances are equal)",
     )
     output: PointerProperty(
         name="Placed", type=bpy.types.Collection, description="Collection that receives the brush-placed objects"
@@ -101,6 +125,37 @@ class SB_Category(PropertyGroup):
         min=math.radians(5.0),
         max=math.radians(90.0),
         subtype="ANGLE",
+        update=_changed,
+    )
+    min_slope: FloatProperty(
+        name="Min Slope",
+        description="Skip surfaces flatter than this (0 = no limit), for rocks on cliffs",
+        default=0.0,
+        min=0.0,
+        max=math.radians(85.0),
+        subtype="ANGLE",
+        update=_changed,
+    )
+    use_height: BoolProperty(
+        name="Limit Height", description="Only place objects between the two heights", update=_changed
+    )
+    height_min: FloatProperty(name="Lowest", default=0.0, subtype="DISTANCE", update=_changed)
+    height_max: FloatProperty(name="Highest", default=100.0, subtype="DISTANCE", update=_changed)
+    avoid_object: PointerProperty(
+        name="Keep Away From",
+        type=bpy.types.Object,
+        poll=_is_mesh,
+        update=_changed,
+        description="Mesh (a road, a building, a path) that stays free of objects",
+    )
+    avoid_distance: FloatProperty(
+        name="Keep-Away Distance",
+        description="How far from that mesh the objects must stay",
+        default=1.0,
+        min=0.0,
+        soft_max=50.0,
+        subtype="DISTANCE",
+        update=_changed,
     )
 
     # Surface layers
@@ -138,6 +193,15 @@ class SB_Category(PropertyGroup):
         default=0.02,
         min=0.0,
         max=0.99,
+        update=_changed,
+    )
+    viewport_percent: FloatProperty(
+        name="Viewport Density",
+        description="Show only this share of the objects in the viewport (render and bake keep all)",
+        default=100.0,
+        min=1.0,
+        max=100.0,
+        subtype="PERCENTAGE",
         update=_changed,
     )
     edge_scale: FloatProperty(
@@ -184,9 +248,18 @@ def register():
         name="Erase", description="The brush removes placed objects instead (also: hold Shift)"
     )
     bpy.types.Object.sb_layers = CollectionProperty(type=SB_Layer)
+    bpy.types.Object.sb_weight = IntProperty(
+        name="Chance",
+        description="How often this model is picked compared with the others (0 = never)",
+        default=1,
+        min=0,
+        max=10,
+        update=_weight_changed,
+    )
 
 
 def unregister():
+    del bpy.types.Object.sb_weight
     del bpy.types.Object.sb_layers
     del bpy.types.Scene.sb_erase
     del bpy.types.Scene.sb_next_uid

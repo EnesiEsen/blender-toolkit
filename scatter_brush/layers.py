@@ -8,7 +8,7 @@ import bpy
 from bpy.app.translations import pgettext_rpt as rpt_
 from mathutils import Matrix
 
-TREE_VERSION = 2
+TREE_VERSION = 3
 TREE_NAMES = {False: "SB Scatter", True: "SB Scatter (Even)"}
 MOD_PREFIX = "Scatter "
 
@@ -30,6 +30,14 @@ INPUTS = (
     ("Tilt", "NodeSocketFloat", 0.1, 0.0, 1.5708),
     ("Align", "NodeSocketFloat", 1.0, 0.0, 1.0),
     ("Sink", "NodeSocketFloat", 0.0, -1000.0, 1000.0),
+    ("Min Slope", "NodeSocketFloat", 0.0, 0.0, 1.5708),
+    ("Max Slope", "NodeSocketFloat", 1.5708, 0.0, 1.5708),
+    ("Use Height", "NodeSocketBool", False, None, None),
+    ("Min Height", "NodeSocketFloat", 0.0, -100000.0, 100000.0),
+    ("Max Height", "NodeSocketFloat", 100.0, -100000.0, 100000.0),
+    ("Viewport Percent", "NodeSocketFloat", 100.0, 1.0, 100.0),
+    ("Avoid", "NodeSocketObject", None, None, None),
+    ("Avoid Distance", "NodeSocketFloat", 1.0, 0.0, 1000.0),
 )
 
 
@@ -154,12 +162,55 @@ def build_tree(tree, even):
     weak = g.node("FunctionNodeCompare", data_type="FLOAT", operation="LESS_EQUAL")
     g.link(w_pt, _in(weak, "A"))
     g.link(gin["Cutoff"], _in(weak, "B"))
-    reject = g.node("FunctionNodeBooleanMath", operation="OR")
-    g.link(_out(lose, "Result"), reject.inputs[0])
-    g.link(_out(weak, "Result"), reject.inputs[1])
+
+    def compare(op, a, b):
+        n = g.node("FunctionNodeCompare", data_type="FLOAT", operation=op)
+        g.feed(n, "A", a)
+        g.feed(n, "B", b)
+        return _out(n, "Result")
+
+    def logic(op, a, b):
+        n = g.node("FunctionNodeBooleanMath", operation=op)
+        g.link(a, n.inputs[0])
+        g.link(b, n.inputs[1])
+        return n.outputs[0]
+
+    # More reasons to drop a point: too steep or too flat, outside the height band, near the keep-away mesh, and
+    # (viewport only) the share hidden by Viewport Density. The hidden share is a subset, so render and bake match.
+    normal_z = g.node("ShaderNodeSeparateXYZ")
+    g.link(_out(dist, "Normal"), normal_z.inputs[0])
+    lean_angle = g.math("ARCCOSINE", g.math("MAXIMUM", g.math("MINIMUM", normal_z.outputs["Z"], 1.0), -1.0))
+    too_steep = compare("GREATER_THAN", lean_angle, g.math("ADD", gin["Max Slope"], 0.001))
+    too_flat = compare("LESS_THAN", lean_angle, g.math("SUBTRACT", gin["Min Slope"], 0.001))
+
+    height_z = g.node("ShaderNodeSeparateXYZ")
+    g.link(_out(g.node("GeometryNodeInputPosition"), "Position"), height_z.inputs[0])
+    outside = logic(
+        "OR",
+        compare("LESS_THAN", height_z.outputs["Z"], gin["Min Height"]),
+        compare("GREATER_THAN", height_z.outputs["Z"], gin["Max Height"]),
+    )
+    off_band = logic("AND", gin["Use Height"], outside)
+
+    avoid_info = g.node("GeometryNodeObjectInfo", transform_space="RELATIVE")
+    g.link(gin["Avoid"], _in(avoid_info, "Object"))
+    avoid_faces = g.node("GeometryNodeAttributeDomainSize", component="MESH")
+    g.link(_out(avoid_info, "Geometry"), _in(avoid_faces, "Geometry"))
+    proximity = g.node("GeometryNodeProximity", target_element="FACES")
+    g.link(_out(avoid_info, "Geometry"), _in(proximity, "Geometry"))
+    near = compare("LESS_THAN", _out(proximity, "Distance"), gin["Avoid Distance"])
+    too_close = logic("AND", compare("GREATER_THAN", _out(avoid_faces, "Face Count"), 0.0), near)
+
+    hidden_roll = g.random("FLOAT", 0.0, 1.0, g.math("ADD", gin["Seed"], 53))
+    over_share = compare("GREATER_THAN", hidden_roll, g.math("DIVIDE", gin["Viewport Percent"], 100.0))
+    thinned = logic("AND", _out(g.node("GeometryNodeIsViewport"), "Is Viewport"), over_share)
+
+    reject = logic("OR", _out(lose, "Result"), _out(weak, "Result"))
+    for reason in (too_steep, too_flat, off_band, too_close, thinned):
+        reject = logic("OR", reject, reason)
     keep = g.node("GeometryNodeDeleteGeometry", domain="POINT")
     g.link(points, _in(keep, "Geometry"))
-    g.link(reject.outputs[0], _in(keep, "Selection"))
+    g.link(reject, _in(keep, "Selection"))
 
     # Which model: a random child of the category collection.
     info = g.node("GeometryNodeCollectionInfo")
@@ -251,6 +302,9 @@ def set_input(mod, identifier, value):
     properties = getattr(mod, "properties", None)
     if properties is not None:
         getattr(properties.inputs, identifier).value = value
+    elif value is None:  # an empty object / collection socket: an id property cannot hold None, so drop the key
+        if identifier in mod:
+            del mod[identifier]
     else:
         mod[identifier] = value
 
@@ -275,7 +329,7 @@ def push(ob, mod, cat, layer):
     ids = socket_ids(mod.node_group)
     low, high = sorted((cat.scale_min, cat.scale_max))
     values = {
-        "Assets": cat.collection,
+        "Assets": cat.pick or cat.collection,
         "Weights": layer.group,
         "Density": cat.density * layer.density,
         "Min Distance": cat.min_distance,
@@ -290,6 +344,14 @@ def push(ob, mod, cat, layer):
         "Tilt": cat.tilt,
         "Align": cat.align,
         "Sink": cat.sink,
+        "Min Slope": cat.min_slope,
+        "Max Slope": cat.max_slope,
+        "Use Height": cat.use_height,
+        "Min Height": min(cat.height_min, cat.height_max),
+        "Max Height": max(cat.height_min, cat.height_max),
+        "Viewport Percent": cat.viewport_percent,
+        "Avoid": cat.avoid_object,
+        "Avoid Distance": cat.avoid_distance,
     }
     for name, value in values.items():
         set_input(mod, ids[name], value)
@@ -309,6 +371,57 @@ def sync_category(scene, cat):
         for layer in ob.sb_layers:
             if layer.cat_id == cat.uid:
                 push_layer(ob, layer, scene)
+
+
+def models_of(cat):
+    """The models of a category in name order."""
+    return sorted(cat.collection.all_objects, key=lambda o: o.name) if cat.collection else []
+
+
+def _hide_in_view_layers(scene, collection):
+    for view_layer in scene.view_layers:
+        layer_collection = view_layer.layer_collection.children.get(collection.name)
+        if layer_collection is not None:
+            layer_collection.exclude = True
+
+
+def refresh_pick(scene, cat):
+    """Rebuild the hidden pick list so a model with chance 3 appears three times next to a model with chance 1.
+
+    The surface layers pick one random child of a collection; repeating the children is how the chances reach them.
+    With all chances equal there is no pick list and the layers read the model collection itself.
+    """
+    models = models_of(cat)
+    pick = cat.pick
+    if pick is not None and pick.name not in bpy.data.collections:
+        pick = None
+    if not models or all(m.sb_weight == 1 for m in models):
+        if pick is not None:
+            for ob in list(pick.objects):
+                bpy.data.objects.remove(ob)
+            bpy.data.collections.remove(pick)
+        cat.pick = None
+        return
+    if pick is None:
+        pick = bpy.data.collections.new(f"{cat.name} Pick List")
+        scene.collection.children.link(pick)
+    for ob in list(pick.objects):
+        bpy.data.objects.remove(ob)
+    for model in models:
+        for _ in range(model.sb_weight):
+            copy = model.copy()
+            copy.parent = None
+            pick.objects.link(copy)
+    _hide_in_view_layers(scene, pick)
+    cat.pick = pick
+
+
+def model_weight_changed(scene, ob):
+    """A model's chance changed: refresh the pick list of every category that holds it, and their layers."""
+    for cat in scene.sb_categories:
+        if cat.collection is not None and ob.name in cat.collection.all_objects:
+            refresh_pick(scene, cat)
+            sync_category(scene, cat)
 
 
 def add_layer(ob, cat, group, scene):
@@ -343,6 +456,9 @@ def bake_layer(context, ob, index, collection, keep_layer=False, limit=None):
     for m in ob.modifiers:
         if m.name in saved:
             m.show_viewport = m.name == mod.name
+    ids = socket_ids(mod.node_group)
+    share = get_input(mod, ids["Viewport Percent"])
+    set_input(mod, ids["Viewport Percent"], 100.0)  # a bake keeps every object, whatever the viewport shows
     context.view_layer.update()
     made = []
     try:
@@ -368,6 +484,7 @@ def bake_layer(context, ob, index, collection, keep_layer=False, limit=None):
             collection.objects.link(copy)
             made.append(copy)
     finally:
+        set_input(mod, ids["Viewport Percent"], share)
         for m in ob.modifiers:
             if m.name in saved:
                 m.show_viewport = saved[m.name]

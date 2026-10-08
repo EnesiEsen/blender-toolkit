@@ -5,6 +5,9 @@ models grow there with a smooth density falloff, or **click and drag a brush** i
 use the same **categories**: a category is a set of models (for example 15 rocks, or 5 grass blades) plus all the
 randomness settings you saved for it.
 
+Scatter Brush is a general-purpose add-on, like Terrain Blend: it works in any Blender scene and needs none of the
+Unreal Engine add-ons. (If you do build a game level, the placed objects are ordinary objects that any exporter takes.)
+
 [Türkçe](scatter_brush.tr.md) · [Back to the overview](../README.md)
 
 The panel is in the sidebar tab **Scatter** (press `N` in the 3D view; in the screenshots it sits under *Item* because of how
@@ -29,8 +32,7 @@ the pictures were taken). Tested in Blender 5.0.1 and 5.2.0. The yellow numbers 
 
 ![Variation and brush settings](images/steps/scatter-2-brush.png)
 
-Everything here belongs to the active category and is saved with the file. The model for each object is picked at random
-from the category.
+Everything here belongs to the active category and is saved with the file.
 
 | # | Setting | What it does |
 |---|---|---|
@@ -38,12 +40,30 @@ from the category.
 | 2 | **Random Turn / Random Tilt** | Largest random turn around the up axis (360 is a free turn) and the largest random lean away from it. |
 | 3 | **Align to Surface** | 0 keeps everything upright, 1 follows the slope of the ground. |
 | 4 | **Sink**, **Seed** | Push objects into the ground (a rock half buried), and the random pattern. The arrows button rolls a new seed. |
-| 5 | **Start Brush** | The click brush, see section 4. |
-| 6 | **Radius, Objects per Stamp, Stroke Spacing, Min Distance, Max Slope** | The click brush settings, see section 4. |
+| 5 | **Start Brush** | The click brush, see section 5. |
+| 6 | **Radius, Objects per Stamp, Stroke Spacing** | The click brush settings, see section 5. |
 | 7 | **Erase** | Makes the brush erase (also: hold `Shift`, or press `E`). |
 | 8 | **Delete Placed Objects** | Removes every object the brush or a bake placed for this category. |
 
-## 3. Scatter where you paint weights
+## 3. Which model, and where: chances and filters
+
+![Model chances and filters](images/steps/scatter-5-filters.png)
+
+These settings apply to the surface layers and to the click brush alike.
+
+- **Model Chances** (2): every model has a chance from 0 to 10. A model with 3 is picked three times as often as one
+  with 1; 0 never. Use it to make one rock common and another rare. With all chances equal nothing extra is built; otherwise a
+  hidden *Pick List* collection repeats the models by their chance (do not edit it, it is rebuilt).
+- **Max Slope / Min Slope** (3, 4): skip surfaces steeper or flatter than the angle. Grass on gentle ground only, rocks on the
+  cliffs only. 90 and 0 mean no limit.
+- **Limit Height** (5): place only between a lowest and a highest height, for example no trees above the snow line. Layers
+  measure it in the ground's own space (the same as world space when the ground sits at the origin); the brush uses world space.
+- **Keep Away From** (6) and its distance (7): pick a mesh such as a road, a path or a building and nothing grows within that
+  distance of it (1). This works with any mesh: for the brush the distance is measured to the mesh surface as well.
+- **Min Distance** (8): no two objects closer than this. The brush honours it always; surface layers use it with **Even
+  Spacing**.
+
+## 4. Scatter where you paint weights
 
 ![Weight paint layers](images/steps/scatter-3-weights.png)
 
@@ -64,16 +84,18 @@ from the category.
    | **Edge Falloff** | 1 follows the weight linearly, 2 or more thins the objects faster toward weak weights, so the patch has a tighter edge. |
    | **Weight Cutoff** | Weights at or below this get no objects at all. |
    | **Shrink at Edges** | Objects get smaller where the weight is weak, so the edge of a lawn is made of short grass. |
-   | **Even Spacing / Min Distance** | Keeps at least that distance between two objects (good for trees and rocks; a bit slower). |
+   | **Even Spacing** | Keeps the **Min Distance** between two objects (good for trees and rocks; a bit slower). |
+   | **Viewport Density** (9) | Show only a share of the objects in the viewport, for example 20% while you paint a big meadow. The shown objects are a subset of the full pattern; render and **Bake to Objects** always use all of them. |
 
 5. Add more layers for other categories (Rocks on a `rocks` group, Trees on a `trees` group). A layer is a Geometry Nodes
    modifier; the screen icon switches it off, the cross removes it. Leave the weights field empty to scatter over the
-   whole surface.
+   whole surface. The vertex group that masks a layer of **Terrain Blend** works here too: paint the grass texture and the
+   grass models with the same group.
 6. **Bake to Objects** (6, middle icon) turns a layer into real objects you can move, delete or export one by one. They are
    linked duplicates (they share the mesh of the model), placed in the collection `<category> Placed`, and the layer is
    removed (the redo panel can keep it). More than 20 000 objects are refused: lower the density first.
 
-## 4. Click brush
+## 5. Click brush
 
 ![Click brush](images/steps/scatter-4-brush.png)
 
@@ -88,10 +110,9 @@ bumps (2).
 | `Ctrl` + wheel, or `[` and `]` | Change the **Radius**. The wheel alone and the middle mouse button still move the view. |
 | `Esc`, `Enter` or right click | End the tool. |
 
-The settings (4): **Radius** (0 places exactly at the cursor), **Objects per Stamp**, **Stroke Spacing**, **Min Distance**
-(no two objects closer than this, also against objects from earlier strokes) and **Max Slope** (skips steeper ground, so no
-grass on cliffs). Each stroke is one undo step. The brush ignores its own objects when it looks for the ground, so you can
-paint over an area you already filled.
+The settings (4): **Radius** (0 places exactly at the cursor), **Objects per Stamp** and **Stroke Spacing**; the slope, height,
+keep-away and minimum-distance filters of section 3 apply as well. Each stroke is one undo step. The brush ignores its own
+objects when it looks for the ground, so you can paint over an area you already filled.
 
 The placed objects are ordinary linked duplicates in `<category> Placed`; the rest of Blender (move, delete, export) works on
 them as on any object.
@@ -103,11 +124,11 @@ them as on any object.
 - **The ground must have scale 1 and no rotation** for surface layers. The click brush does not care.
 - The density is per square meter of ground surface. A very sparse ground mesh (a few big faces) limits how
   well the falloff follows your painting; the weights are interpolated across each face.
-- The model of each object is picked uniformly at random. There are no per-model weights.
-- Objects do not avoid each other or other layers unless you set a **Min Distance** (brush) or **Even Spacing** (layer).
-- Live layers exist only in Blender. For Unreal Engine, **Bake to Objects** first. Thousands of single objects are a heavy
-  FBX; for foliage you may prefer to export the models once and scatter them again inside Unreal. This was not tried in
-  Unreal here.
+- Objects do not avoid each other or other layers unless you set a **Min Distance**, or **Keep Away From** a mesh.
+- Live layers exist only in Blender. For a game engine, **Bake to Objects** first. Thousands of single objects are a heavy
+  export; for foliage you may prefer to export the models once and scatter them again inside the engine. Nothing here was
+  tried in Unreal Engine.
 - The click brush needs Object Mode and a 3D viewport; there is no pen pressure support.
 - Verified on Blender 5.0.1 and 5.2.0 with scripted checks (object counts against an independent calculation, scale and
-  turn ranges, slopes, spacing, baking), and the click brush with simulated mouse events in a real window.
+  turn ranges, slopes, heights, keep-away distance, chances, viewport share, spacing, baking), and the click brush with
+  simulated mouse events in a real window.

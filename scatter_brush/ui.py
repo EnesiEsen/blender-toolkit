@@ -96,6 +96,65 @@ class SB_PT_variation(Panel):
         row.operator("scatter_brush.seed", text="", icon="FILE_REFRESH")
 
 
+class SB_PT_chances(Panel):
+    bl_label = "Model Chances"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Scatter"
+    bl_parent_id = "SB_PT_main"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(cls, context):
+        return active_category(context) is not None
+
+    def draw(self, context):
+        cat = active_category(context)
+        layout = self.layout
+        models = layers.models_of(cat)
+        if not models:
+            layout.label(text="The category is empty.", icon="INFO")
+            return
+        col = layout.column(align=True)
+        for model in models[:40]:
+            row = col.row(align=True)
+            row.label(text=model.name, icon="OBJECT_DATA")
+            row.prop(model, "sb_weight", text="")
+        if len(models) > 40:
+            layout.label(text="Only the first 40 models are listed.", icon="INFO")
+        wrapped(layout, "Chance 3 is picked three times as often as chance 1. 0 never.", "INFO")
+
+
+class SB_PT_filters(Panel):
+    bl_label = "Place Only Where"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Scatter"
+    bl_parent_id = "SB_PT_main"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(cls, context):
+        return active_category(context) is not None
+
+    def draw(self, context):
+        cat = active_category(context)
+        layout = self.layout
+        col = layout.column(align=True)
+        col.prop(cat, "max_slope")
+        col.prop(cat, "min_slope")
+        col = layout.column(align=True)
+        col.prop(cat, "use_height", toggle=True)
+        if cat.use_height:
+            col.prop(cat, "height_min")
+            col.prop(cat, "height_max")
+        col = layout.column(align=True)
+        col.prop(cat, "avoid_object", text="")
+        if cat.avoid_object is not None:
+            col.prop(cat, "avoid_distance")
+        layout.prop(cat, "min_distance")
+
+
 class SB_PT_brush(Panel):
     bl_label = "Click Brush"
     bl_space_type = "VIEW_3D"
@@ -115,8 +174,6 @@ class SB_PT_brush(Panel):
         col.prop(cat, "radius")
         col.prop(cat, "count")
         col.prop(cat, "spacing", slider=True)
-        col.prop(cat, "min_distance")
-        col.prop(cat, "max_slope")
         layout.prop(context.scene, "sb_erase", toggle=True, icon="X")
         layout.operator("scatter_brush.clear", icon="TRASH")
 
@@ -143,8 +200,7 @@ class SB_PT_surface(Panel):
         col.prop(cat, "threshold", slider=True)
         col.prop(cat, "edge_scale", slider=True)
         col.prop(cat, "even")
-        if cat.even:
-            col.prop(cat, "min_distance")
+        col.prop(cat, "viewport_percent", slider=True)
         if ob is None or ob.type != "MESH":
             wrapped(layout, "Select the ground mesh to scatter on.", "INFO")
             return
@@ -176,4 +232,12 @@ class SB_PT_surface(Panel):
                 card.label(text="The modifier is missing. Remove the layer.", icon="ERROR")
 
 
-classes = (SB_UL_categories, SB_PT_main, SB_PT_variation, SB_PT_brush, SB_PT_surface)
+classes = (
+    SB_UL_categories,
+    SB_PT_main,
+    SB_PT_chances,
+    SB_PT_variation,
+    SB_PT_filters,
+    SB_PT_brush,
+    SB_PT_surface,
+)

@@ -5,10 +5,11 @@ import random
 
 import bpy
 from mathutils import Euler, Matrix, Vector
+from mathutils.bvhtree import BVHTree
 
 UP = Vector((0.0, 0.0, 1.0))
 MAX_PER_STAMP = 1000
-RAY_SKIPS = 16  # how many brush-placed objects a cursor ray may pass through before it gives up
+RAY_SKIPS = 48  # how many brush-placed objects a cursor ray may pass through before it gives up
 
 
 def sources(cat):
@@ -16,6 +17,11 @@ def sources(cat):
     if cat.collection is None:
         return []
     return sorted((o for o in cat.collection.all_objects), key=lambda o: o.name)
+
+
+def pickable(cat):
+    """The models the brush may pick: the ones whose chance is above zero."""
+    return [o for o in sources(cat) if o.sb_weight > 0]
 
 
 def output_collection(scene, cat):
@@ -64,7 +70,12 @@ class Painter:
         self.scene = context.scene
         self.context = context
         self.uid = cat.uid
-        self.sources = sources(cat)
+        self.sources = pickable(cat)
+        self.chances = [o.sb_weight for o in self.sources]
+        self.avoid = None
+        avoid_object = cat.avoid_object
+        if avoid_object is not None and avoid_object.type == "MESH":
+            self.avoid = (avoid_object, BVHTree.FromObject(avoid_object, context.evaluated_depsgraph_get()))
         self.out = output_collection(self.scene, cat)
         assets = [o for c in context.scene.sb_categories if c.collection for o in c.collection.all_objects]
         self.skip = {o.name for o in assets}
@@ -134,6 +145,21 @@ class Painter:
                 return None
         return None
 
+    # -- placement filters ---------------------------------------------------------------------------------------
+    def allowed(self, cat, p, n):
+        """False where the category must stay empty: wrong slope, outside the height band, near the keep-away mesh."""
+        slope = n.angle(UP)
+        if slope > cat.max_slope + 1e-4 or slope < cat.min_slope - 1e-4:
+            return False
+        if cat.use_height and not (min(cat.height_min, cat.height_max) <= p.z <= max(cat.height_min, cat.height_max)):
+            return False
+        if self.avoid is not None:
+            obj, tree = self.avoid
+            hit = tree.find_nearest(obj.matrix_world.inverted() @ p)
+            if hit[0] is not None and hit[3] < cat.avoid_distance:
+                return False
+        return True
+
     # -- stamps --------------------------------------------------------------------------------------------------
     def spawn(self, src, matrix):
         ob = src.copy()  # linked duplicate: the mesh data stays shared with the source
@@ -152,7 +178,6 @@ class Painter:
         cat = self.cat
         if not self.sources:
             return []
-        flat = cat.max_slope >= math.radians(89.9)
         made = []
         for _ in range(min(cat.count, MAX_PER_STAMP)):
             if cat.radius > 0.0:
@@ -163,11 +188,9 @@ class Painter:
                 p, n = hit
             else:
                 p, n = loc, normal
-            if not flat and n.angle(UP) > cat.max_slope:
+            if not self.allowed(cat, p, n) or self._crowded(p):
                 continue
-            if self._crowded(p):
-                continue
-            src = self.rng.choice(self.sources)
+            src = self.rng.choices(self.sources, weights=self.chances)[0]
             made.append(self.spawn(src, placement_matrix(self.rng, cat, p, n)))
             self._add(p.copy())
         self.last = loc.copy()

@@ -13,6 +13,7 @@ TR = {
     "Selected Faces Only": "Yalnızca Seçili Yüzler",
     "Measure": "Ölç",
     "Show Colors": "Renkleri Göster",
+    "Texture for the target: {n:.0f} px (use {p})": "Hedef için doku: {n:.0f} px ({p} kullan)",
     "Hide Colors": "Renkleri Gizle",
     "Copy from Active": "Aktiften Kopyala",
     "Pack Islands (Keep Density)": "Adaları Paketle (Yoğunluğu Koru)",

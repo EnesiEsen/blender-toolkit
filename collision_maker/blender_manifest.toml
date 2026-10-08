@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "collision_maker"
-version = "0.1.0"
+version = "0.1.1"
 name = "Collision Maker"
 tagline = "Unreal collision shapes (UBX, USP, UCP, UCX) in one click"
 maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"

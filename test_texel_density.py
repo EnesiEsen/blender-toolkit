@@ -251,6 +251,20 @@ try:
 except RuntimeError as e:
     failures.append(f"pack islands failed: {e}")
 
+# ---- the texture size that reaches a target density (2 m plane, UV fills the square)
+set_uv(plane, 1.0)
+stats = density.summary(density.analyze(plane, 1024), 1024.0, 10.0)
+check(near(stats["needed"], 2048.0), f"a 1024 px/m target on 2 m needs 2048 px: {stats['needed']}")
+check(stats["suggested"] == 2048, "suggested size is the power of two")
+stats = density.summary(density.analyze(plane, 1024), 700.0, 10.0)
+check(near(stats["needed"], 1400.0) and stats["suggested"] == 2048, f"a size between powers rounds up: {stats}")
+stats = density.summary(density.analyze(plane, 1024), 256.0, 10.0)
+check(stats["suggested"] == 512, "a 256 px/m target on 2 m needs 512 px")
+set_uv(plane, 0.5)
+stats = density.summary(density.analyze(plane, 1024), 512.0, 10.0)
+check(near(stats["needed"], 2048.0), "half the UV size doubles the texture needed")
+check(density.suggest_size(0.0) == 0 and density.suggest_size(10.0) == 64, "tiny and empty sizes are clamped")
+
 # ---- translation
 prefs = bpy.context.preferences.view
 prefs.language, prefs.use_translate_interface = "tr_TR", True

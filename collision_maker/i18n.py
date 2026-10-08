@@ -22,6 +22,8 @@ TR = {
     "Show / Hide Collision": "Çarpışmayı Göster / Gizle",
     "Check Collision": "Çarpışmayı Denetle",
     "Fix": "Düzelt",
+    "Fix the problem: apply the shape's transform, or replace it by its convex hull": "Sorunu düzelt: şeklin dönüşümünü uygula ya da dışbükey kabukla değiştir",
+    "'{name}' has its own transform: apply it so Unreal puts the shape right.": "'{name}' kendi dönüşümüne sahip: Unreal şekli doğru koysun diye uygula.",
     "{count} collision shapes created.": "{count} çarpışma şekli oluşturuldu.",
     "{count} collision shapes removed.": "{count} çarpışma şekli kaldırıldı.",
     "{count} problems found.": "{count} sorun bulundu.",

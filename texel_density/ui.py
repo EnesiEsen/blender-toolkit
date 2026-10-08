@@ -39,6 +39,8 @@ class TD_PT_main(Panel):
             icon="ERROR" if r.flagged > 20 else "NONE",
         )
         col.label(text=iface_("UV space used: {c:.0f}%").format(c=r.coverage))
+        if r.needed:
+            col.label(text=iface_("Texture for the target: {n:.0f} px (use {p})").format(n=r.needed, p=r.suggested))
         if r.outside:
             col.label(text=iface_("{n} faces lie outside 0-1").format(n=r.outside), icon="INFO")
         if r.unwrapped:

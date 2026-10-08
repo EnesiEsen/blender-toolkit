@@ -91,7 +91,7 @@ class CM_OT_check(Operator):
 class CM_OT_fix(Operator):
     bl_idname = "collision_maker.fix"
     bl_label = "Fix"
-    bl_description = "Replace the shape by its convex hull"
+    bl_description = "Fix the problem: apply the shape's transform, or replace it by its convex hull"
     bl_options = {"REGISTER", "UNDO"}
 
     index: IntProperty()
@@ -102,7 +102,7 @@ class CM_OT_fix(Operator):
         if shape is None:
             self.report({"ERROR"}, rpt_("The object no longer exists."))
             return {"CANCELLED"}
-        core.fix(shape, context.scene.cm_settings.max_vertices)
+        core.fix(shape, context.scene.cm_settings.max_vertices, item.code)
         context.scene.cm_issues.remove(self.index)
         return {"FINISHED"}
 
