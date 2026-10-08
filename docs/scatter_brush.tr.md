@@ -15,6 +15,18 @@ Panel, kenar çubuğunun **Scatter** sekmesindedir (3D görünümde `N`; ekran g
 *Item* sekmesinin altında görünür). Blender 5.0.1 ve 5.2.0'da test edildi. Resimlerdeki sarı numaralar metindeki
 numaralarla eşleşir.
 
+![Scatter Brush paneli ve serpiştirilmiş bir seviye](images/scatter_brush.png)
+
+## Hızlı başlangıç
+
+1. Modellerini (çimen, taş, ağaç) seç ve **Scatter** sekmesinde **+** düğmesine bas. Bir kez **Modelleri Hazırla**'ya bas.
+2. **Çeşitlilik**'i aç; istediğin boyut, dönüş ve eğilmeyi ayarla. Bu, kategoriyle birlikte kaydedilir.
+3. **Boyadığın yere serpiştirmek için:** zemini seç, vertex group aç, **Yüzey Katmanı Ekle**'ye bas, sonra katmanın weight
+   paint simgesine basıp boya.
+4. **Elle yerleştirmek için:** **Fırçayı Başlat**'a bas, sonra zeminde tıkla ya da sürükle. `Shift` + tık siler, `Esc` bitirir.
+5. Hangi modelin nereye gideceğini **Model Olasılıkları** ve **Sadece Şurada Yerleştir** ile söyle. Taşıyıp dışa aktarabileceğin
+   gerçek objeler istediğinde **Objelere Dönüştür**'e bas.
+
 ## 1. Kategori oluştur
 
 ![Kategoriler](images/steps/scatter-1-category.png)
@@ -116,6 +128,41 @@ zemini ararken kendi objelerini yok sayar; bu yüzden daha önce doldurduğun al
 
 Yerleştirilen objeler `<kategori> Placed` içindeki sıradan bağlı kopyalardır; Blender'ın geri kalanı (taşı, sil, dışa
 aktar) onlarla her obje gibi çalışır.
+
+## Uygulamalı örnekler
+
+### A. Patikalı bir çayır
+
+1. Farklı boylarda üç çimen modeli seç, **+** ve **Modelleri Hazırla**'ya bas.
+2. **Model Olasılıkları**'nı aç: uzun çimene 2, iki kısa çimene 4 ve 3 ver; böylece kısa çimen en yaygın olur.
+3. **Çeşitlilik**'te En Küçük Boyut 0.7, En Büyük Boyut 1.4, Boy Farkı 0.2, Rastgele Eğilme 12° ve Yüzeye Hizala 1 yap.
+4. Zemini seç (ölçek ve döndürmesi uygulanmış), grup listesindeki **+** ile `meadow` adlı bir vertex group aç, **Yüzey Katmanı
+   Ekle**'ye bas, sonra katmanın weight paint simgesine bas. Tarlanın üstüne ağırlık 1, kenarına yumuşak bir sınır için daha
+   düşük ağırlık (0.3 – 0.5) boya. Boyarken Blender hızlı kalsın diye **Viewport Yoğunluğu**'nu %20 yap.
+5. Patikayı zeminin üstünde yatan bir şerit olarak modelle. **Sadece Şurada Yerleştir**'de **Şundan Uzak Tut**'a onu seç,
+   mesafeyi 0.8 m yap: patikada ve hemen yanında çimen çıkmaz.
+6. **Yoğunluk** 60, **Kenarda Küçült** 0.6 ve **En Çok Eğim** 35° yap; çimen dik şevlere tırmanmasın. İşin bitince
+   **Viewport Yoğunluğu**'nu tekrar %100 yap.
+
+### B. Tıklama fırçasıyla taşlı bir patika
+
+1. On beş taşı seç, **+** ve **Modelleri Hazırla**'ya bas. **Model Olasılıkları**'nda üç büyük kayaya 1, küçük taşlara 4 ver.
+2. **Çeşitlilik**'te: Boyut 0.6 – 1.8, Gömme 0.1 m (taşlar zemine otursun), Rastgele Dönüş 360°, Rastgele Eğilme 8°.
+3. **Sadece Şurada Yerleştir**'de **En Az Mesafe** 0.7 m yap; taşlar birbirinin içine yığılmasın.
+4. **Tıklama Fırçası**'nda Yarıçap 3 m, Tıklama Başına Obje 8 ve Sürükleme Aralığı 0.4 yap, **Fırçayı Başlat**'a bas ve patika
+   boyunca sürükle. `Shift` + sürükle hatayı siler, `Ctrl` + tekerlek açık zeminde fırçayı büyütür, `Esc` bitirir.
+5. Baştan başlamak istersen **Yerleştirilenleri Sil** kategorinin yerleştirdiği taşları temizler.
+
+### C. Yükseklik ve eğime göre orman kenarı
+
+1. İki üç ağaç modeli seç, **+** ve **Modelleri Hazırla**'ya bas.
+2. **Sadece Şurada Yerleştir**'de En Çok Eğim 30° yap ve **Yüksekliği Sınırla**'yı aç: En Alt 0 m, En Üst 40 m. Uçurumda ve
+   ağaç sınırının üstünde ağaç olmaz.
+3. **Weight Paint Katmanları**'nda **Yoğunluk** 0.05 (20 metrekareye bir ağaç), **Eşit Aralık**'ı aç, **En Az Mesafe**'yi 4 m
+   (Sadece Şurada Yerleştir'de) ve **Kenar Sönümü**'nü 2 yap.
+4. `forest` adlı bir vertex group aç, **Yüzey Katmanı Ekle**'ye bas ve ormanın içini tam, kenara doğru yumuşakça boya:
+   ağaçlar orada seyrelir ve küçülür (**Kenarda Küçült** 0.5).
+5. Yerleşim son halini alınca tek tek ağaç taşımak ya da dışa aktarmak istersen **Objelere Dönüştür**'e bas.
 
 ## Sınırlar, dürüstçe
 

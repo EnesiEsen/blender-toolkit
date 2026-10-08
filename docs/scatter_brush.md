@@ -13,6 +13,18 @@ Unreal Engine add-ons. (If you do build a game level, the placed objects are ord
 The panel is in the sidebar tab **Scatter** (press `N` in the 3D view; in the screenshots it sits under *Item* because of how
 the pictures were taken). Tested in Blender 5.0.1 and 5.2.0. The yellow numbers in the pictures match the numbers in the text.
 
+![The Scatter Brush panel and a scattered level](images/scatter_brush.png)
+
+## Quick start
+
+1. Select your models (grass blades, rocks, trees) and press **+** in the **Scatter** tab. Press **Prepare Models** once.
+2. Open **Variation** and set the size, turn and lean you want. This is saved with the category.
+3. **To scatter where you paint:** select the ground, make a vertex group, press **Add Surface Layer**, then press the weight
+   paint icon of the layer and paint.
+4. **To place by hand:** press **Start Brush**, then click or drag over the ground. `Shift` + click erases, `Esc` ends.
+5. Use **Model Chances** and **Place Only Where** to say which model goes where. Press **Bake to Objects** when you want
+   real objects to move or export.
+
 ## 1. Make a category
 
 ![Categories](images/steps/scatter-1-category.png)
@@ -116,6 +128,42 @@ objects when it looks for the ground, so you can paint over an area you already 
 
 The placed objects are ordinary linked duplicates in `<category> Placed`; the rest of Blender (move, delete, export) works on
 them as on any object.
+
+## Worked examples
+
+### A. A meadow with a footpath
+
+1. Select three grass blades of different heights, press **+** and **Prepare Models**.
+2. Open **Model Chances**: give the tall blade 2 and the two short ones 4 and 3, so short grass is the most common.
+3. In **Variation** set Scale Min 0.7 and Scale Max 1.4, Height Variation 0.2, Random Tilt 12° and Align to Surface 1.
+4. Select the ground (scale and rotation applied), add a vertex group named `meadow` with the **+** at the group list, press
+   **Add Surface Layer**, then press the layer's weight paint icon. Paint weight 1 over the field and a lower weight (0.3 to
+   0.5) around its edge for a soft border. While you paint, set **Viewport Density** to 20% to keep Blender fast.
+5. Model the footpath as a strip lying on the ground. In **Place Only Where** pick it at **Keep Away From** and set the
+   distance to 0.8 m: no grass grows on the path or right next to it.
+6. Set **Density** 60, **Shrink at Edges** 0.6 and **Max Slope** 35° so the grass does not climb the steep banks. Put
+   **Viewport Density** back to 100% when you are done.
+
+### B. A rocky trail with the click brush
+
+1. Select fifteen rocks and press **+**, then **Prepare Models**. In **Model Chances** give the three big boulders 1 and the
+   small stones 4.
+2. In **Variation**: Scale 0.6 to 1.8, Sink 0.1 m so the rocks sit in the ground, Random Turn 360°, Random Tilt 8°.
+3. In **Place Only Where** set **Min Distance** 0.7 m so rocks do not pile into each other.
+4. In **Click Brush** set Radius 3 m, Objects per Stamp 8 and Stroke Spacing 0.4, then press **Start Brush** and drag along
+   the trail. `Shift` + drag removes a mistake, `Ctrl` + wheel makes the brush bigger for open ground, `Esc` ends.
+5. **Delete Placed Objects** clears the category's placed rocks if you want to start over.
+
+### C. A forest edge by height and slope
+
+1. Select two or three tree models, press **+** and **Prepare Models**.
+2. In **Place Only Where** set Max Slope 30° and turn on **Limit Height** with Lowest 0 m and Highest 40 m: no trees on cliffs
+   or above the tree line.
+3. In **Weight Paint Layers** set **Density** 0.05 (one tree per 20 square meters), turn on **Even Spacing**, set **Min
+   Distance** 4 m (in Place Only Where) and **Edge Falloff** 2.
+4. Make a vertex group `forest`, press **Add Surface Layer** and paint it fully inside the forest and softly toward the edge:
+   the trees thin out and get smaller there (**Shrink at Edges** 0.5).
+5. Press **Bake to Objects** when the layout is final, if you want to move single trees or export them.
 
 ## Limits, honestly
 
