@@ -2,6 +2,7 @@
 
 Every export works on temporary copies, so nothing in your scene is moved, applied or renamed.
 """
+
 import re
 from pathlib import Path
 
@@ -30,19 +31,35 @@ def target_folder(s, kind):
 def fbx_options(s, kind):
     """Settings that follow the Unreal Engine guidance: FBX unit scale, default axes, no phantom leaf bones."""
     options = dict(
-        apply_unit_scale=True, apply_scale_options="FBX_SCALE_UNITS", use_space_transform=True,
-        bake_space_transform=False, mesh_smooth_type="FACE", use_tspace=s.tangents, use_mesh_modifiers=True,
-        path_mode="AUTO", add_leaf_bones=s.leaf_bones, use_armature_deform_only=s.only_deform,
-        armature_nodetype=s.armature_node, primary_bone_axis="Y", secondary_bone_axis="X")
+        apply_unit_scale=True,
+        apply_scale_options="FBX_SCALE_UNITS",
+        use_space_transform=True,
+        bake_space_transform=False,
+        mesh_smooth_type="FACE",
+        use_tspace=s.tangents,
+        use_mesh_modifiers=True,
+        path_mode="AUTO",
+        add_leaf_bones=s.leaf_bones,
+        use_armature_deform_only=s.only_deform,
+        armature_nodetype=s.armature_node,
+        primary_bone_axis="Y",
+        secondary_bone_axis="X",
+    )
     if kind == "STATIC":
         options.update(object_types={"MESH"}, bake_anim=False)
     elif kind == "SKELETAL":
         options.update(object_types={"ARMATURE", "MESH"}, bake_anim=False)
     else:
-        options.update(object_types={"ARMATURE"}, bake_anim=True, bake_anim_use_all_bones=True,
-                       bake_anim_use_nla_strips=False, bake_anim_use_all_actions=False,
-                       bake_anim_force_startend_keying=True, bake_anim_step=s.bake_step,
-                       bake_anim_simplify_factor=1.0)
+        options.update(
+            object_types={"ARMATURE"},
+            bake_anim=True,
+            bake_anim_use_all_bones=True,
+            bake_anim_use_nla_strips=False,
+            bake_anim_use_all_actions=False,
+            bake_anim_force_startend_keying=True,
+            bake_anim_step=s.bake_step,
+            bake_anim_simplify_factor=1.0,
+        )
     return options
 
 
@@ -54,22 +71,41 @@ def write_fbx(context, objects, path, s, kind):
     for ob in objects:
         ob.select_set(True)
     context.view_layer.objects.active = objects[0]
-    with context.temp_override(selected_objects=objects, selected_editable_objects=objects,
-                               active_object=objects[0], object=objects[0]):
+    with context.temp_override(
+        selected_objects=objects, selected_editable_objects=objects, active_object=objects[0], object=objects[0]
+    ):
         result = bpy.ops.export_scene.fbx(filepath=str(path), use_selection=True, **fbx_options(s, kind))
     if result != {"FINISHED"} or not path.exists():
         raise ExportError(rpt_("The FBX exporter failed for '{name}'.").format(name=path.name))
     return path
 
 
-def static_copy(context, ob, s):
-    """A temporary mesh object with the modifiers applied and rotation and scale baked in, at the origin."""
+COLLISION = re.compile(r"^(UBX|USP|UCP|UCX)_(.+)_(\d+)$")  # Unreal's collision shape names: UBX_<mesh>_00
+
+
+def collision_shapes(ob):
+    """Collision shapes of a mesh: its children named UBX_/USP_/UCP_/UCX_ and objects named after it."""
+    found = {c for c in ob.children if c.type == "MESH" and COLLISION.match(c.name)}
+    for other in bpy.data.objects:
+        match = COLLISION.match(other.name) if other.type == "MESH" else None
+        if match and match.group(2) == ob.name:
+            found.add(other)
+    return sorted(found, key=lambda o: o.name)
+
+
+def static_copy(context, ob, s, anchor=None, name=None):
+    """A temporary mesh object with the modifiers applied and rotation and scale baked in.
+
+    With Center at Origin the mesh sits at the origin; a collision shape (`anchor` is its mesh) keeps its place relative
+    to that mesh.
+    """
     mesh = bpy.data.meshes.new_from_object(ob.evaluated_get(context.evaluated_depsgraph_get()))
     matrix = ob.matrix_world.copy()
     if s.center_origin:
-        matrix.translation = (0.0, 0.0, 0.0)
+        origin = anchor.matrix_world.translation if anchor is not None else matrix.translation
+        matrix.translation = matrix.translation - origin
     mesh.transform(matrix)
-    copy = bpy.data.objects.new(rig.TEMP + ob.name, mesh)
+    copy = bpy.data.objects.new(name or rig.TEMP + ob.name, mesh)
     context.scene.collection.objects.link(copy)
     return copy
 
@@ -79,25 +115,40 @@ def is_skinned(ob):
 
 
 def export_static(context, objects, s):
-    """One FBX per mesh in StaticMeshes/. Skinned meshes are skipped (export them as skeletal meshes)."""
+    """One FBX per mesh in StaticMeshes/, with its collision shapes (UBX_, USP_, UCP_, UCX_) in the same file.
+
+    Skinned meshes are skipped (export them as skeletal meshes) and so are the collision shapes themselves.
+    """
     folder = target_folder(s, "StaticMeshes")
     paths = []
     for ob in objects:
-        if ob.type != "MESH" or is_skinned(ob):
+        if ob.type != "MESH" or is_skinned(ob) or COLLISION.match(ob.name):
             continue
         copy = static_copy(context, ob, s)
+        # the copy carries a temporary name; Unreal matches a shape to its mesh by name, so the shapes use the same one
+        shapes = []
+        for shape in collision_shapes(ob):
+            kind, _, number = COLLISION.match(shape.name).groups()
+            shapes.append(static_copy(context, shape, s, anchor=ob, name=f"{kind}_{copy.name}_{number}"))
         try:
-            paths.append(write_fbx(context, [copy], folder / (ue_name(ob.name, "SM_", s) + ".fbx"), s, "STATIC"))
+            target = folder / (ue_name(ob.name, "SM_", s) + ".fbx")
+            paths.append(write_fbx(context, [copy, *shapes], target, s, "STATIC"))
         finally:
-            mesh = copy.data
-            bpy.data.objects.remove(copy)
-            bpy.data.meshes.remove(mesh)
+            for temp in (copy, *shapes):
+                mesh = temp.data
+                bpy.data.objects.remove(temp)
+                bpy.data.meshes.remove(mesh)
     return paths
 
 
 def skinned_meshes(armature):
-    return [o for o in bpy.data.objects if o.type == "MESH" and any(
-        m.type == "ARMATURE" and m.object == armature for m in o.modifiers) and not o.name.startswith(rig.TEMP)]
+    return [
+        o
+        for o in bpy.data.objects
+        if o.type == "MESH"
+        and any(m.type == "ARMATURE" and m.object == armature for m in o.modifiers)
+        and not o.name.startswith(rig.TEMP)
+    ]
 
 
 def export_skeletal(context, armatures, s):
@@ -113,8 +164,15 @@ def export_skeletal(context, armatures, s):
             label = group[0].name if s.skeletal_mode == "PER_MESH" else armature.name
             copy = rig.RigCopy(context, armature, group, s)
             try:
-                paths.append(write_fbx(context, [copy.armature, *copy.meshes],
-                                       folder / (ue_name(label, "SK_", s) + ".fbx"), s, "SKELETAL"))
+                paths.append(
+                    write_fbx(
+                        context,
+                        [copy.armature, *copy.meshes],
+                        folder / (ue_name(label, "SK_", s) + ".fbx"),
+                        s,
+                        "SKELETAL",
+                    )
+                )
             finally:
                 copy.cleanup()
     return paths
@@ -141,10 +199,17 @@ def animation_sources(armature, s):
         if data and data.action:
             found.append((data.action.name, data.action, *data.action.frame_range, None))
     elif s.anim_source == "NLA":
-        for track in (data.nla_tracks if data else []):
+        for track in data.nla_tracks if data else []:
             if track.strips:
-                found.append((track.name, None, min(t.frame_start for t in track.strips),
-                              max(t.frame_end for t in track.strips), track.name))
+                found.append(
+                    (
+                        track.name,
+                        None,
+                        min(t.frame_start for t in track.strips),
+                        max(t.frame_end for t in track.strips),
+                        track.name,
+                    )
+                )
     else:
         bones = {b.name for b in armature.data.bones}
         for action in bpy.data.actions:
@@ -184,8 +249,15 @@ def export_animations(context, armatures, s):
                         raise ExportError(rpt_("Could not find the hips bone: type its name in Hips Bone."))
                     root = rig.root_above(context, copy.armature, hips.name, s.root_name)
                     motion.extract_root_motion(context, copy.armature, data.action, root, hips.name, start, end)
-                paths.append(write_fbx(context, [copy.armature],
-                                       folder / (ue_name(f"{armature.name}_{name}", "A_", s) + ".fbx"), s, "ANIM"))
+                paths.append(
+                    write_fbx(
+                        context,
+                        [copy.armature],
+                        folder / (ue_name(f"{armature.name}_{name}", "A_", s) + ".fbx"),
+                        s,
+                        "ANIM",
+                    )
+                )
             finally:
                 scene.frame_start, scene.frame_end = saved_range
                 if track is None and copy.armature.animation_data and copy.armature.animation_data.action:

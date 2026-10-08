@@ -1,7 +1,8 @@
 # Blender Toolkit
 
-Four Blender add-ons that remove the slow, repetitive parts of game-asset work: blending many terrain textures,
-retopologizing any model, getting props and characters into FiveM, and exporting clean FBX files for Unreal Engine 5.
+Ten Blender add-ons that remove the slow, repetitive parts of game-asset work: blending many terrain textures,
+retopologizing any model, getting props and characters into FiveM, and a full pipeline to Unreal Engine 5 (hard-surface
+modeling, texel density, textures, collision, rigging and FBX export), and a brush that scatters grass, rocks and trees.
 
 **Blender 5.0 to 5.2** (tested on 5.0.1 and 5.2.0 LTS) · GPL-3.0-or-later · English and Turkish interface
 
@@ -13,6 +14,12 @@ retopologizing any model, getting props and characters into FiveM, and exporting
 | **Retopo Kit** | One-click quad retopology for props, vehicles and characters, with guide curves and a quality report. | [docs/retopo_kit.md](docs/retopo_kit.md) |
 | **FiveM Toolkit** | Check, fix, build and export props, MLO interiors and ped clothing for FiveM, on top of Sollumz. | [docs/fivem_toolkit.md](docs/fivem_toolkit.md) |
 | **UE5 Bridge** | FBX export for Unreal Engine 5: static meshes, modular skeletal meshes, animations, root motion. | [docs/ue5_bridge.md](docs/ue5_bridge.md) |
+| **Texture Kit** | Texture checks, normal map flip, ORM packing and Unreal-named export. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#texture-kit) |
+| **Texel Density** | Measure, show as colors and set the texture density of every asset. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#texel-density) |
+| **Collision Maker** | UBX / USP / UCP / UCX collision shapes and a checker, exported with the mesh. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#collision-maker) |
+| **Hard Surface Kit** | Non-destructive bevels, cutters, arrays, grooves and an Apply Stack for game-ready meshes. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#hard-surface-kit) |
+| **Game Rig Kit** | UE5 mannequin skeleton, skinning, IK, renaming and animation retarget. | [docs/ue5-pipeline.md](docs/ue5-pipeline.md#game-rig-kit) |
+| **Scatter Brush** | Scatter grass, rocks and trees where you weight paint, or with a click brush; categories with saved randomness. | [docs/scatter_brush.md](docs/scatter_brush.md) |
 
 ![Terrain Blend](docs/images/terrain_blend.png)
 

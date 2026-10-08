@@ -1,4 +1,5 @@
 """Turkish translation of the interface."""
+
 TR = {
     "Retopo Kit": "Retopo Seti",
     "Retopologize": "Retopo Yap",
@@ -23,10 +24,8 @@ TR = {
     "Clear Guides": "Kılavuzları Temizle",
     "Quality Report": "Kalite Raporu",
     "Analyze Mesh": "Mesh'i Analiz Et",
-    "QRemeshify is not installed: using QuadriFlow. Install it for guide curves and sharper results.":
-        "QRemeshify kurulu değil: QuadriFlow kullanılıyor. Kılavuz çizgileri ve daha keskin sonuç için kur.",
-    "Lines the new quads should follow (eyes, mouth, fingers, panel gaps).":
-        "Yeni quad'ların izleyeceği çizgiler (göz, ağız, parmak, panel boşluğu).",
+    "QRemeshify is not installed: using QuadriFlow. Install it for guide curves and sharper results.": "QRemeshify kurulu değil: QuadriFlow kullanılıyor. Kılavuz çizgileri ve daha keskin sonuç için kur.",
+    "Lines the new quads should follow (eyes, mouth, fingers, panel gaps).": "Yeni quad'ların izleyeceği çizgiler (göz, ağız, parmak, panel boşluğu).",
     "Guide edges on '{name}': {count}": "'{name}' üzerindeki kılavuz kenarlar: {count}",
     "{faces} faces, {pct:.0f}% quads": "{faces} yüz, %{pct:.0f} quad",
     "{tris} tris, {ngons} n-gons": "{tris} üçgen, {ngons} n-gon",
@@ -34,8 +33,7 @@ TR = {
     "Edge length variation: {cv:.0f}%": "Kenar uzunluğu değişimi: %{cv:.0f}",
     "Distance to source (avg / max): {avg:.2f}% / {mx:.2f}%": "Kaynağa uzaklık (ort. / en çok): %{avg:.2f} / %{mx:.2f}",
     "{count} non-manifold edges": "{count} manifold olmayan kenar",
-    "Many triangles: raise the target faces or add guides.":
-        "Çok üçgen var: hedef yüzü artır ya da kılavuz ekle.",
+    "Many triangles: raise the target faces or add guides.": "Çok üçgen var: hedef yüzü artır ya da kılavuz ekle.",
     "Select a mesh with faces.": "Yüzleri olan bir mesh seç.",
     "The QRemeshify extension is not installed or not enabled.": "QRemeshify eklentisi kurulu değil ya da açık değil.",
     "Select the mesh that should receive the guides.": "Kılavuzları alacak mesh'i seç.",
@@ -43,11 +41,9 @@ TR = {
     "{count} guide edges marked on '{name}'.": "'{name}' üzerinde {count} kılavuz kenarı işaretlendi.",
     "{count} edges marked as guides.": "{count} kenar kılavuz olarak işaretlendi.",
     "{count} guide edges cleared.": "{count} kılavuz kenarı temizlendi.",
-    "Pick the Draw tool in the toolbar, then drag on the model.":
-        "Araç çubuğundan Draw aracını seç, sonra model üzerinde sürükle.",
+    "Pick the Draw tool in the toolbar, then drag on the model.": "Araç çubuğundan Draw aracını seç, sonra model üzerinde sürükle.",
     "Analyzed '{name}'.": "'{name}' analiz edildi.",
-    "{preset}/{engine}: {faces} faces, {quads:.0f}% quads, deviation {dev:.2f}%, {passes} pass(es)":
-        "{preset}/{engine}: {faces} yüz, %{quads:.0f} quad, sapma %{dev:.2f}, {passes} geçiş",
+    "{preset}/{engine}: {faces} faces, {quads:.0f}% quads, deviation {dev:.2f}%, {passes} pass(es)": "{preset}/{engine}: {faces} yüz, %{quads:.0f} quad, sapma %{dev:.2f}, {passes} geçiş",
     " (guides are ignored by QuadriFlow: use QRemeshify)": " (QuadriFlow kılavuzları yok sayar: QRemeshify kullan)",
     ", guides followed": ", kılavuzlar izlendi",
 }

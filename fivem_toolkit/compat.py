@@ -2,6 +2,7 @@
 everything that touches it goes through this file: detection, calling operators with only the arguments they
 accept, object type names.
 """
+
 import importlib
 
 import bpy
@@ -25,8 +26,9 @@ class SollumzMissing(Exception):
 
 
 def ready():
-    return (hasattr(bpy.types.Scene, "ytyps") and hasattr(bpy.ops, "sollumz")
-            and hasattr(bpy.ops.sollumz, "export_assets"))
+    return (
+        hasattr(bpy.types.Scene, "ytyps") and hasattr(bpy.ops, "sollumz") and hasattr(bpy.ops.sollumz, "export_assets")
+    )
 
 
 def require():

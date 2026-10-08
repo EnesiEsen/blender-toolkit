@@ -3,6 +3,7 @@
 Vertex groups are packed 4 per color attribute by a Geometry Nodes modifier (see masks.py), so the material is live
 while weight painting and stays inside EEVEE's attribute limit. See README.md for the workflow.
 """
+
 import bpy
 from bpy.props import CollectionProperty, IntProperty, PointerProperty
 

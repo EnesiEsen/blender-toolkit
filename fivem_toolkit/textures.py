@@ -3,6 +3,7 @@
 Sollumz exports textures only from DDS files (it skips anything else with a warning) and Blender cannot write DDS, so
 this module has its own small block-compression encoder (numpy, no external tools).
 """
+
 import math
 import struct
 from pathlib import Path
@@ -18,14 +19,17 @@ ALPHA_CODES = np.array([[7, 0], [0, 7], [6, 1], [5, 2], [4, 3], [3, 4], [2, 5], 
 
 def pow2_size(width, height, limit):
     """Nearest power of two per side, never above `limit`."""
+
     def snap(n):
         return min(limit, max(4, 2 ** round(math.log2(max(n, 1)))))
+
     return snap(width), snap(height)
 
 
 def is_dds(image):
     return Path(bpy.path.abspath(image.filepath)).suffix.lower() == ".dds" or bool(
-        image.packed_file and image.packed_file.data.startswith(b"DDS "))
+        image.packed_file and image.packed_file.data.startswith(b"DDS ")
+    )
 
 
 def read_rgba8(image):
@@ -101,7 +105,7 @@ def encode_level(pixels, with_alpha):
     blocks = to_blocks(pixels).astype(np.float32)
     parts = []
     for start in range(0, len(blocks), CHUNK):
-        chunk = blocks[start:start + CHUNK]
+        chunk = blocks[start : start + CHUNK]
         color = encode_bc1(chunk[:, :, :3])
         parts.append(np.hstack([encode_bc3_alpha(chunk[:, :, 3]), color]) if with_alpha else color)
     return np.vstack(parts).tobytes()

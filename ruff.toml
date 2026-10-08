@@ -2,3 +2,6 @@ line-length = 120
 
 [lint]
 select = ["E", "F", "W", "B"]
+
+[lint.per-file-ignores]
+"**/i18n.py" = ["E501"]  # translation tables hold long sentences

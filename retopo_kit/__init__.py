@@ -3,6 +3,7 @@
 Workflow: pick a preset and a target face count, press Retopologize. For faces, hands and other hard areas, draw guide
 curves first so the quads follow them. See README.md.
 """
+
 import bpy
 from bpy.props import PointerProperty
 

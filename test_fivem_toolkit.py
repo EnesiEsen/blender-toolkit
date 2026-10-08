@@ -5,6 +5,7 @@ Needs Sollumz (installed as the `sollumz_dev` extension here). Covers the Doctor
 prop pipeline (drawables, converted materials, LODs, collision placement, YTYP, texture dictionaries) and a real export
 of the resource folder in both binary and CodeWalker XML form.
 """
+
 import importlib.util
 import os
 import sys
@@ -15,8 +16,9 @@ from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.join(HERE, "fivem_toolkit")
-spec = importlib.util.spec_from_file_location("fivem_toolkit", os.path.join(PKG, "__init__.py"),
-                                              submodule_search_locations=[PKG])
+spec = importlib.util.spec_from_file_location(
+    "fivem_toolkit", os.path.join(PKG, "__init__.py"), submodule_search_locations=[PKG]
+)
 fk = importlib.util.module_from_spec(spec)
 sys.modules["fivem_toolkit"] = fk
 spec.loader.exec_module(fk)
@@ -83,8 +85,10 @@ odd = textured_material("odd", save_image("odd_d", 300, 200, tmp))
 bpy.context.view_layer.update()
 before = tuple(broken.dimensions)
 found = doctor.scan([broken], s)
-check({"NAME", "TRANSFORM", "MODIFIERS", "NO_UV", "NO_MATERIAL", "TRI_COUNT"} <= set(codes(found)),
-      f"doctor finds the problems of a broken mesh: {codes(found)}")
+check(
+    {"NAME", "TRANSFORM", "MODIFIERS", "NO_UV", "NO_MATERIAL", "TRI_COUNT"} <= set(codes(found)),
+    f"doctor finds the problems of a broken mesh: {codes(found)}",
+)
 mesh.materials.append(odd)
 check("TEXTURE_SIZE" in codes(doctor.scan([broken], s)), "doctor flags a 300x200 texture")
 fixed, failed = doctor.fix_all(bpy.context, doctor.scan([broken], s))
@@ -92,14 +96,18 @@ left = codes(doctor.scan([broken], s))
 check(left == ["TRI_COUNT"], f"after fix_all only the unfixable problem is left: {left} ({failed})")
 bpy.context.view_layer.update()
 check(broken.name == "my_crate" and tuple(broken.scale) == (1.0, 1.0, 1.0), "name and scale fixed")
-check(all(abs(a - b) < 1e-3 for a, b in zip(broken.dimensions, before, strict=True)),
-      f"applying the scale keeps the size: {tuple(broken.dimensions)} vs {before}")
+check(
+    all(abs(a - b) < 1e-3 for a, b in zip(broken.dimensions, before, strict=True)),
+    f"applying the scale keeps the size: {tuple(broken.dimensions)} vs {before}",
+)
 uv = broken.data.uv_layers[0].data
 check(len({round(v.uv[0], 3) for v in uv}) > 2, "box projection gives varied UVs")
 check(tuple(bpy.data.images["odd_d"].size) == (256, 256), f"texture snapped to {tuple(bpy.data.images['odd_d'].size)}")
 check(not broken.modifiers, "modifiers applied")
-check(codes(doctor.scan([bpy.data.objects.new("empty_obj", bpy.data.meshes.new("e"))], s)).count("EMPTY_MESH") == 1,
-      "doctor flags a mesh without faces")
+check(
+    codes(doctor.scan([bpy.data.objects.new("empty_obj", bpy.data.meshes.new("e"))], s)).count("EMPTY_MESH") == 1,
+    "doctor flags a mesh without faces",
+)
 
 # ---- the prop pipeline needs Sollumz
 if not compat.ready():
@@ -133,47 +141,69 @@ else:
     check(sorted(by_name) == ["barrel_a", "box_b"], f"drawables named after sanitized objects: {sorted(by_name)}")
     for d in drawables:
         for model in compat.children_of(d, compat.MODEL):
-            check(all(m.sollum_type == compat.SHADER_MATERIAL for m in model.data.materials if m is not None),
-                  f"{d.name}: materials converted to Sollumz shaders")
+            check(
+                all(m.sollum_type == compat.SHADER_MATERIAL for m in model.data.materials if m is not None),
+                f"{d.name}: materials converted to Sollumz shaders",
+            )
     barrel_d, box_d = by_name["barrel_a"], by_name["box_b"]
     barrel_model = compat.children_of(barrel_d, compat.MODEL)[0]
     base_tris = doctor.triangles(barrel_model.data)
     lods = barrel_model.sz_lods
     check(all(getattr(lods, k).has_mesh for k in ("high", "medium", "low", "very_low")), "barrel has four LOD meshes")
     tri_by_level = [doctor.triangles(lods.get_lod(compat.LOD_LEVELS[k]).mesh) for k in ("med", "low", "vlow")]
-    check(tri_by_level == sorted(tri_by_level, reverse=True) and tri_by_level[0] < base_tris,
-          f"LOD triangle counts shrink: {base_tris} -> {tri_by_level}")
+    check(
+        tri_by_level == sorted(tri_by_level, reverse=True) and tri_by_level[0] < base_tris,
+        f"LOD triangle counts shrink: {base_tris} -> {tri_by_level}",
+    )
     check(not compat.children_of(box_d, compat.MODEL)[0].sz_lods.medium.has_mesh, "a 12-triangle box gets no LODs")
     p = barrel_d.drawable_properties
     check(0 < p.lod_dist_high < p.lod_dist_med < p.lod_dist_low < p.lod_dist_vlow <= 9998, "LOD distances grow")
     composite = next((c for c in barrel_d.children if compat.kind(c) == compat.COMPOSITE), None)
     check(composite is not None, "barrel has a collision composite")
-    check(composite is None or not [i for i in doctor.scan([barrel_d, composite], s) if i["code"] == "NAME"],
-          "the embedded collision is not flagged as a badly named asset")
+    check(
+        composite is None or not [i for i in doctor.scan([barrel_d, composite], s) if i["code"] == "NAME"],
+        "the embedded collision is not flagged as a badly named asset",
+    )
     uv_names = [u.name for u in barrel_model.data.uv_layers]
-    check("UVMap 0" in uv_names and "Color 1" in [a.name for a in barrel_model.data.color_attributes],
-          f"meshes carry the names the Sollumz shaders expect: {uv_names}")
-    check(all("UVMap 0" in [u.name for u in lods.get_lod(compat.LOD_LEVELS[k]).mesh.uv_layers]
-              for k in ("med", "low", "vlow")), "LOD meshes carry them too")
+    check(
+        "UVMap 0" in uv_names and "Color 1" in [a.name for a in barrel_model.data.color_attributes],
+        f"meshes carry the names the Sollumz shaders expect: {uv_names}",
+    )
+    check(
+        all(
+            "UVMap 0" in [u.name for u in lods.get_lod(compat.LOD_LEVELS[k]).mesh.uv_layers]
+            for k in ("med", "low", "vlow")
+        ),
+        "LOD meshes carry them too",
+    )
     texture = bpy.data.images["barrel_d"]
-    check(texture.filepath.endswith(".dds") and os.path.exists(bpy.path.abspath(texture.filepath)),
-          f"the texture was converted to a DDS file: {texture.filepath}")
+    check(
+        texture.filepath.endswith(".dds") and os.path.exists(bpy.path.abspath(texture.filepath)),
+        f"the texture was converted to a DDS file: {texture.filepath}",
+    )
     check("fk_source" in texture, "the original path is remembered")
     if composite is not None:
         shapes = [c for c in composite.children_recursive if c.type == "MESH"]
         tris = sum(doctor.triangles(c.data) for c in shapes)
         check(0 < tris <= 140, f"collision is simplified: {tris} triangles")
-        check(all(m.sollum_type == compat.COLLISION_MATERIAL for c in shapes for m in c.data.materials)
-              and all(len(c.data.materials) for c in shapes), "collision meshes carry a collision material")
+        check(
+            all(m.sollum_type == compat.COLLISION_MATERIAL for c in shapes for m in c.data.materials)
+            and all(len(c.data.materials) for c in shapes),
+            "collision meshes carry a collision material",
+        )
         corners = [c.matrix_world @ Vector(v) for c in shapes for v in c.bound_box]
         centre = sum(corners, Vector()) / len(corners)
-        check((centre - barrel_model.matrix_world.translation).length < 0.3,
-              f"collision sits on the model: {tuple(round(x, 2) for x in centre)} vs "
-              f"{tuple(round(x, 2) for x in barrel_model.matrix_world.translation)}")
+        check(
+            (centre - barrel_model.matrix_world.translation).length < 0.3,
+            f"collision sits on the model: {tuple(round(x, 2) for x in centre)} vs "
+            f"{tuple(round(x, 2) for x in barrel_model.matrix_world.translation)}",
+        )
     archetypes = [a for y in sc.ytyps for a in y.archetypes]
     check(sorted(a.name for a in archetypes) == ["barrel_a", "box_b"], "one archetype per prop")
-    check(all(abs(a.lod_dist - prop.archetype_lod_dist(prop.world_radius(a.asset))) < 0.01 for a in archetypes),
-          "archetype distances")
+    check(
+        all(abs(a.lod_dist - prop.archetype_lod_dist(prop.world_radius(a.asset))) < 0.01 for a in archetypes),
+        "archetype distances",
+    )
     check(sc.ytyps[0].name == "test_props", "the YTYP is named like the resource")
     if compat.has_ytd():
         txds = sc.sz_txds.texture_dictionaries
@@ -203,12 +233,16 @@ else:
             check("barrel_a.ytd" + suffix in files, f"{fmt}: texture dictionary exported: {files}")
         manifest = (path / "fxmanifest.lua").read_text(encoding="utf-8")
         binary_name = ytyp_files[0].removesuffix(".xml")  # the XML is converted to binary with CodeWalker
-        check(f"data_file 'DLC_ITYP_REQUEST' 'stream/{binary_name}'" in manifest and "fx_version" in manifest,
-              f"{fmt}: fxmanifest loads the YTYP")
+        check(
+            f"data_file 'DLC_ITYP_REQUEST' 'stream/{binary_name}'" in manifest and "fx_version" in manifest,
+            f"{fmt}: fxmanifest loads the YTYP",
+        )
         if fmt == "CWXML":
             text = (path / "stream" / "barrel_a.ydr.xml").read_text(encoding="utf-8")
-            check('Bounds type="Composite"' in text and "LodDistHigh" in text and "DrawableModelsMedium" in text,
-                  "XML drawable has collision and LOD data")
+            check(
+                'Bounds type="Composite"' in text and "LodDistHigh" in text and "DrawableModelsMedium" in text,
+                "XML drawable has collision and LOD data",
+            )
     s.output_dir = ""
     try:
         resource.export(bpy.context, s)
@@ -239,8 +273,9 @@ if compat.ready():
     wrong = bpy.data.objects.new("portal.hall.pantry", bpy.data.meshes.new("quad"))
     wrong.data.from_pydata([(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)], [], [(0, 1, 2, 3)])
     root.objects.link(wrong)
-    check("unknown room 'pantry'" in " | ".join(mlo.read_layout(root).problems),
-          "a portal to a missing room is reported")
+    check(
+        "unknown room 'pantry'" in " | ".join(mlo.read_layout(root).problems), "a portal to a missing room is reported"
+    )
     bpy.data.objects.remove(wrong)
 
     archetype, summary = mlo.build(bpy.context, root, s)
@@ -248,8 +283,10 @@ if compat.ready():
     room_name = {r.id: r.name for r in archetype.rooms}
     check([r.name for r in archetype.rooms] == ["limbo", "hall", "kitchen"], f"rooms: {list(room_name.values())}")
     composite = archetype.asset
-    check(compat.kind(composite) == compat.COMPOSITE and composite.name == "my_interior",
-          "the asset is the collision composite")
+    check(
+        compat.kind(composite) == compat.COMPOSITE and composite.name == "my_interior",
+        "the asset is the collision composite",
+    )
     inverse = composite.matrix_world.inverted()
     by_pair = {(room_name[int(p.room_from_id)], room_name[int(p.room_to_id)]): p for p in archetype.portals}
     check(set(by_pair) == {("hall", "kitchen"), ("limbo", "hall")}, f"portal connections: {sorted(by_pair)}")
@@ -264,34 +301,51 @@ if compat.ready():
     low, high = (inverse @ Vector(c) for c in ((-2, -2, 0), (2, 2, 3)))
     hall = next(r for r in archetype.rooms if r.name == "hall")
     inside = all(a <= b + 1e-3 for a, b in zip(hall.bb_min, low, strict=True)) and all(
-        a >= b - 1e-3 for a, b in zip(hall.bb_max, high, strict=True))
+        a >= b - 1e-3 for a, b in zip(hall.bb_max, high, strict=True)
+    )
     check(inside, f"room bounds hold the shell: {tuple(hall.bb_min)}")
     entity_rooms = {e.archetype_name: room_name[int(e.attached_room_id)] for e in archetype.entities}
     check(entity_rooms == {"hall_shell": "hall", "kitchen_shell": "kitchen"}, f"entities by room: {entity_rooms}")
-    check(all(e.linked_object is not None and compat.kind(e.linked_object) == compat.DRAWABLE
-              for e in archetype.entities), "entities link their drawables")
-    check({a.name for y in sc.ytyps for a in y.archetypes} >= {"hall_shell", "kitchen_shell", "my_interior"},
-          "every entity has its own archetype")
+    check(
+        all(
+            e.linked_object is not None and compat.kind(e.linked_object) == compat.DRAWABLE for e in archetype.entities
+        ),
+        "entities link their drawables",
+    )
+    check(
+        {a.name for y in sc.ytyps for a in y.archetypes} >= {"hall_shell", "kitchen_shell", "my_interior"},
+        "every entity has its own archetype",
+    )
     check(hall_shell.parent is not None, "the room meshes were converted")
     for fmt, suffix in (("NATIVE", ""), ("CWXML", ".xml")):
         s.export_format, s.resource_name = fmt, "mlo_" + fmt.lower()
         path, files = resource.export(bpy.context, s)
-        check({"hall_shell.ydr" + suffix, "my_interior.ybn" + suffix} <= set(files),
-              f"{fmt}: MLO assets exported: {files}")
+        check(
+            {"hall_shell.ydr" + suffix, "my_interior.ybn" + suffix} <= set(files),
+            f"{fmt}: MLO assets exported: {files}",
+        )
         if fmt == "CWXML":
             ytyp_file = next(path / "stream" / f for f in files if f.endswith(".ytyp.xml"))
             ytyp_text = ytyp_file.read_text(encoding="utf-8")
-            check("CMloArchetypeDef" in ytyp_text and "<name>kitchen</name>" in ytyp_text and "limbo" in ytyp_text,
-                  "the YTYP XML holds the MLO with its rooms")
+            check(
+                "CMloArchetypeDef" in ytyp_text and "<name>kitchen</name>" in ytyp_text and "limbo" in ytyp_text,
+                "the YTYP XML holds the MLO with its rooms",
+            )
 
 
 # ---- ped tools: bone names, weight problems, retargeting onto the GTA skeleton
-check(ped.to_gta("mixamorig:Hips") == "SKEL_Pelvis" and ped.to_gta("mixamorig:LeftHandIndex2") == "SKEL_L_Finger11",
-      "Mixamo bone names are recognised")
-check(ped.to_gta("mixamorig:RightUpLeg") == "SKEL_R_Thigh" and ped.to_gta("mixamorig:LeftLeg") == "SKEL_L_Calf",
-      "Mixamo legs: UpLeg is the thigh, Leg is the calf")
-check(ped.to_gta("DEF-thigh.L") == "SKEL_L_Thigh" and ped.to_gta("DEF-f_index.01.R") == "SKEL_R_Finger10",
-      "Rigify bone names are recognised")
+check(
+    ped.to_gta("mixamorig:Hips") == "SKEL_Pelvis" and ped.to_gta("mixamorig:LeftHandIndex2") == "SKEL_L_Finger11",
+    "Mixamo bone names are recognised",
+)
+check(
+    ped.to_gta("mixamorig:RightUpLeg") == "SKEL_R_Thigh" and ped.to_gta("mixamorig:LeftLeg") == "SKEL_L_Calf",
+    "Mixamo legs: UpLeg is the thigh, Leg is the calf",
+)
+check(
+    ped.to_gta("DEF-thigh.L") == "SKEL_L_Thigh" and ped.to_gta("DEF-f_index.01.R") == "SKEL_R_Finger10",
+    "Rigify bone names are recognised",
+)
 check(ped.to_gta("mixamorig:LeftArmRoll") is None and ped.to_gta("Cape") is None, "unknown bones stay unknown")
 check(ped.read_mapping("# c\nCape = SKEL_Spine3\nbad line\n") == {"cape": "SKEL_Spine3"}, "mapping sheet parser")
 
@@ -300,8 +354,10 @@ if compat.ready():
     sc = bpy.context.scene
     s = sc.fk_settings
     gta = ped.gta_bones()
-    check(len(gta) > 800 and gta["SKEL_ROOT"] is None and gta["SKEL_L_UpperArm"] == "SKEL_L_Clavicle",
-          "the GTA bone registry is read from Sollumz")
+    check(
+        len(gta) > 800 and gta["SKEL_ROOT"] is None and gta["SKEL_L_UpperArm"] == "SKEL_L_Clavicle",
+        "the GTA bone registry is read from Sollumz",
+    )
 
     def make_rig(name, bones, prefix=""):
         data = bpy.data.armatures.new(name)
@@ -317,25 +373,50 @@ if compat.ready():
         bpy.ops.object.mode_set(mode="OBJECT")
         return rig
 
-    mixamo = make_rig("mixamo", [
-        ("Hips", None, (0, 0, 1.0), (0, 0, 1.1)), ("Spine", "Hips", (0, 0, 1.1), (0, 0, 1.2)),
-        ("Spine1", "Spine", (0, 0, 1.2), (0, 0, 1.3)), ("Spine2", "Spine1", (0, 0, 1.3), (0, 0, 1.4)),
-        ("Neck", "Spine2", (0, 0, 1.4), (0, 0, 1.5)), ("Head", "Neck", (0, 0, 1.5), (0, 0, 1.7)),
-        ("LeftShoulder", "Spine2", (0, 0, 1.4), (0.15, 0, 1.4)),
-        ("LeftArm", "LeftShoulder", (0.15, 0, 1.4), (0.45, 0, 1.4)),
-        ("LeftArmRoll", "LeftArm", (0.3, 0, 1.4), (0.45, 0, 1.4)),
-        ("LeftForeArm", "LeftArm", (0.45, 0, 1.4), (0.7, 0, 1.4)),
-        ("LeftHand", "LeftForeArm", (0.7, 0, 1.4), (0.8, 0, 1.4)),
-        ("LeftHandIndex1", "LeftHand", (0.8, 0, 1.4), (0.85, 0, 1.4)),
-        ("LeftHandIndex2", "LeftHandIndex1", (0.85, 0, 1.4), (0.9, 0, 1.4)),
-        ("LeftUpLeg", "Hips", (0.1, 0, 1.0), (0.1, 0, 0.55)), ("LeftLeg", "LeftUpLeg", (0.1, 0, 0.55), (0.1, 0, 0.1)),
-        ("LeftFoot", "LeftLeg", (0.1, 0, 0.1), (0.1, 0.1, 0.05)),
-    ], prefix="mixamorig:")
-    wanted = ["SKEL_ROOT", "SKEL_Pelvis", "SKEL_Spine0", "SKEL_Spine1", "SKEL_Spine2", "SKEL_Neck_1", "SKEL_Head",
-              "SKEL_L_Clavicle", "SKEL_L_UpperArm", "SKEL_L_Forearm", "SKEL_L_Hand", "SKEL_L_Finger10",
-              "SKEL_L_Finger11", "SKEL_L_Thigh", "SKEL_L_Calf", "SKEL_L_Foot"]
-    gta_rig = make_rig("gta", [(n, None if i == 0 else "SKEL_ROOT", (0, 0, 0.1 * i), (0, 0, 0.1 * i + 0.05))
-                               for i, n in enumerate(wanted)])
+    mixamo = make_rig(
+        "mixamo",
+        [
+            ("Hips", None, (0, 0, 1.0), (0, 0, 1.1)),
+            ("Spine", "Hips", (0, 0, 1.1), (0, 0, 1.2)),
+            ("Spine1", "Spine", (0, 0, 1.2), (0, 0, 1.3)),
+            ("Spine2", "Spine1", (0, 0, 1.3), (0, 0, 1.4)),
+            ("Neck", "Spine2", (0, 0, 1.4), (0, 0, 1.5)),
+            ("Head", "Neck", (0, 0, 1.5), (0, 0, 1.7)),
+            ("LeftShoulder", "Spine2", (0, 0, 1.4), (0.15, 0, 1.4)),
+            ("LeftArm", "LeftShoulder", (0.15, 0, 1.4), (0.45, 0, 1.4)),
+            ("LeftArmRoll", "LeftArm", (0.3, 0, 1.4), (0.45, 0, 1.4)),
+            ("LeftForeArm", "LeftArm", (0.45, 0, 1.4), (0.7, 0, 1.4)),
+            ("LeftHand", "LeftForeArm", (0.7, 0, 1.4), (0.8, 0, 1.4)),
+            ("LeftHandIndex1", "LeftHand", (0.8, 0, 1.4), (0.85, 0, 1.4)),
+            ("LeftHandIndex2", "LeftHandIndex1", (0.85, 0, 1.4), (0.9, 0, 1.4)),
+            ("LeftUpLeg", "Hips", (0.1, 0, 1.0), (0.1, 0, 0.55)),
+            ("LeftLeg", "LeftUpLeg", (0.1, 0, 0.55), (0.1, 0, 0.1)),
+            ("LeftFoot", "LeftLeg", (0.1, 0, 0.1), (0.1, 0.1, 0.05)),
+        ],
+        prefix="mixamorig:",
+    )
+    wanted = [
+        "SKEL_ROOT",
+        "SKEL_Pelvis",
+        "SKEL_Spine0",
+        "SKEL_Spine1",
+        "SKEL_Spine2",
+        "SKEL_Neck_1",
+        "SKEL_Head",
+        "SKEL_L_Clavicle",
+        "SKEL_L_UpperArm",
+        "SKEL_L_Forearm",
+        "SKEL_L_Hand",
+        "SKEL_L_Finger10",
+        "SKEL_L_Finger11",
+        "SKEL_L_Thigh",
+        "SKEL_L_Calf",
+        "SKEL_L_Foot",
+    ]
+    gta_rig = make_rig(
+        "gta",
+        [(n, None if i == 0 else "SKEL_ROOT", (0, 0, 0.1 * i), (0, 0, 0.1 * i + 0.05)) for i, n in enumerate(wanted)],
+    )
 
     bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=0.45, location=(0.4, 0, 1.4))
     skin = bpy.context.object
@@ -361,11 +442,18 @@ if compat.ready():
     unused = skin.vertex_groups.new(name="mixamorig:Unused")
 
     codes_before = codes(ped.scan_ped(skin))
-    check({"UNWEIGHTED", "INFLUENCES", "NOT_NORMALIZED", "UNKNOWN_BONE", "EMPTY_GROUPS"} <= set(codes_before),
-          f"ped doctor finds the weight problems: {codes_before}")
-    roll_before = {i: sum(g.weight for g in skin.data.vertices[i].groups
-                          if skin.vertex_groups[g.group].name in ("mixamorig:LeftArm", "mixamorig:LeftArmRoll"))
-                   for i in plain}
+    check(
+        {"UNWEIGHTED", "INFLUENCES", "NOT_NORMALIZED", "UNKNOWN_BONE", "EMPTY_GROUPS"} <= set(codes_before),
+        f"ped doctor finds the weight problems: {codes_before}",
+    )
+    roll_before = {
+        i: sum(
+            g.weight
+            for g in skin.data.vertices[i].groups
+            if skin.vertex_groups[g.group].name in ("mixamorig:LeftArm", "mixamorig:LeftArmRoll")
+        )
+        for i in plain
+    }
     group_names = [g.name for g in skin.vertex_groups]
     s.ped_armature = gta_rig
     compat.select_only(bpy.context, skin)
@@ -378,22 +466,29 @@ if compat.ready():
     if arm is not None:
         for i in plain[:40]:
             after = sum(g.weight for g in skin.data.vertices[i].groups if g.group == arm.index)
-            check(abs(after - roll_before[i]) < 1e-3, f"vertex {i}: the twist bone weight went into the upper arm "
-                  f"({roll_before[i]:.3f} -> {after:.3f})")
+            check(
+                abs(after - roll_before[i]) < 1e-3,
+                f"vertex {i}: the twist bone weight went into the upper arm ({roll_before[i]:.3f} -> {after:.3f})",
+            )
             break
-    check(all(m.object == gta_rig for m in skin.modifiers if m.type == "ARMATURE"),
-          "the modifier uses the GTA skeleton")
+    check(
+        all(m.object == gta_rig for m in skin.modifiers if m.type == "ARMATURE"), "the modifier uses the GTA skeleton"
+    )
     backup = bpy.data.objects.get("jacket_weights_backup")
-    check(backup is not None and backup.hide_get() and [g.name for g in backup.vertex_groups] == group_names,
-          "a hidden backup keeps the original groups")
+    check(
+        backup is not None and backup.hide_get() and [g.name for g in backup.vertex_groups] == group_names,
+        "a hidden backup keeps the original groups",
+    )
     codes_mid = codes(ped.scan_ped(skin))
     check("UNKNOWN_BONE" not in codes_mid and "UNWEIGHTED" in codes_mid, f"after retargeting: {codes_mid}")
     fixed, failed = doctor.fix_all(bpy.context, ped.scan_ped(skin))
     codes_after = codes(ped.scan_ped(skin))
     check(not failed and codes_after == [], f"ped fixes clear the rest: {codes_after} {failed}")
     weights_now = ped.vertex_weights(skin)
-    check(all(w and len(w) <= 4 and abs(sum(w.values()) - 1.0) < 0.01 for w in weights_now),
-          "every vertex has 1-4 bones that add up to 1")
+    check(
+        all(w and len(w) <= 4 and abs(sum(w.values()) - 1.0) < 0.01 for w in weights_now),
+        "every vertex has 1-4 bones that add up to 1",
+    )
     pelvis = gta_rig.data.bones["SKEL_Pelvis"]
     check(pelvis.bone_properties.tag != 0, f"Sollumz bone tags were applied: {pelvis.bone_properties.tag}")
     sheet_op = bpy.ops.fivem_toolkit.ped_mapping_sheet()

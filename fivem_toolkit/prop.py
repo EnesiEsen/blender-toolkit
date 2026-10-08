@@ -2,6 +2,7 @@
 texture dictionary. Sollumz does the conversion; this module orders the steps and fills in what Sollumz leaves to
 the user.
 """
+
 from types import SimpleNamespace
 
 import bmesh
@@ -123,8 +124,9 @@ def make_composite(context, models, name, mode, target_tris):
         return None
     before = {o.as_pointer() for o in bpy.data.objects}  # by identity: Sollumz reuses names when it converts
     compat.select_only(context, *proxies)
-    with SceneFlags(sc, create_seperate_composites=False, center_composite_to_selection=False,
-                    bound_child_type=compat.BVH):
+    with SceneFlags(
+        sc, create_seperate_composites=False, center_composite_to_selection=False, bound_child_type=compat.BVH
+    ):
         bpy.ops.sollumz.converttocomposite()
     composites = [o for o in bpy.data.objects if o.as_pointer() not in before and compat.kind(o) == compat.COMPOSITE]
     if not composites:
@@ -140,8 +142,9 @@ def make_composite(context, models, name, mode, target_tris):
 
 def add_collision(context, drawable, s):
     """Collision of one prop: a composite bound parented to the drawable, keeping its place in the world."""
-    composite = make_composite(context, compat.children_of(drawable, compat.MODEL), f"{drawable.name}.col",
-                               s.collision, s.collision_tris)
+    composite = make_composite(
+        context, compat.children_of(drawable, compat.MODEL), f"{drawable.name}.col", s.collision, s.collision_tris
+    )
     if composite is not None:
         world = composite.matrix_world.copy()
         composite.parent = drawable
@@ -175,8 +178,13 @@ def add_texture_dictionaries(context, drawables):
     existing = {t.name for t in sc.sz_txds.texture_dictionaries}
     for drawable in drawables:
         name = names.asset_name(drawable.name)
-        images = {img for model in compat.children_of(drawable, compat.MODEL) for mat in model.data.materials
-                  for img in doctor.material_images(mat) if img is not None}
+        images = {
+            img
+            for model in compat.children_of(drawable, compat.MODEL)
+            for mat in model.data.materials
+            for img in doctor.material_images(mat)
+            if img is not None
+        }
         if name in existing or not images:
             continue
         txd = sc.sz_txds.new_texture_dictionary(name)
@@ -216,8 +224,12 @@ def build(context, objects, s):
         for image in sorted(images, key=lambda i: i.name):
             textures.convert_image(image, int(s.max_texture))
     before = {o.as_pointer() for o in bpy.data.objects}  # by identity: the drawable takes the name of the mesh it wraps
-    with SceneFlags(context.scene, create_seperate_drawables=s.separate, center_drawable_to_selection=False,
-                    auto_create_embedded_col=s.collision == "MESH"):
+    with SceneFlags(
+        context.scene,
+        create_seperate_drawables=s.separate,
+        center_drawable_to_selection=False,
+        auto_create_embedded_col=s.collision == "MESH",
+    ):
         compat.select_only(context, *meshes)
         bpy.ops.sollumz.converttodrawable()
     made = [o for o in bpy.data.objects if o.as_pointer() not in before and compat.kind(o) == compat.DRAWABLE]

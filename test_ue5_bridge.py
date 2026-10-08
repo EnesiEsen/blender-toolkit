@@ -6,6 +6,7 @@ what Unreal would see: one root bone, no phantom leaf bones, the right size, the
 on, the walk travelling on the root bone. Unreal Engine itself is not needed (nor available); the rules come from
 Epic's guidance.
 """
+
 import importlib.util
 import math
 import os
@@ -17,8 +18,9 @@ from mathutils import Matrix, Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.join(HERE, "ue5_bridge")
-spec = importlib.util.spec_from_file_location("ue5_bridge", os.path.join(PKG, "__init__.py"),
-                                              submodule_search_locations=[PKG])
+spec = importlib.util.spec_from_file_location(
+    "ue5_bridge", os.path.join(PKG, "__init__.py"), submodule_search_locations=[PKG]
+)
 ue = importlib.util.module_from_spec(spec)
 sys.modules["ue5_bridge"] = ue
 spec.loader.exec_module(ue)
@@ -103,13 +105,18 @@ bad = make_rig("Armature", [("Hips", None, (0, 0, 1)), ("Spine", "Hips", (0, 0, 
 bad.scale = (2, 2, 2)
 bpy.context.view_layer.update()
 issues = {i["code"] for i in rig.scan(bad)}
-check({"MULTI_ROOT", "ARMATURE_TRANSFORM", "ARMATURE_NAME"} <= issues,
-      f"rig check finds the problems: {sorted(issues)}")
+check(
+    {"MULTI_ROOT", "ARMATURE_TRANSFORM", "ARMATURE_NAME"} <= issues, f"rig check finds the problems: {sorted(issues)}"
+)
 bpy.context.view_layer.objects.active = bad
-check(rig.ensure_single_root(bpy.context, bad, "root") == "root" and len(rig.root_bones(bad)) == 1,
-      "a single root is added above both roots")
-check({b.name for b in bad.data.bones["root"].children} == {"Hips", "Prop"} and not bad.data.bones["root"].use_deform,
-      "the old roots hang under it and the new root does not deform")
+check(
+    rig.ensure_single_root(bpy.context, bad, "root") == "root" and len(rig.root_bones(bad)) == 1,
+    "a single root is added above both roots",
+)
+check(
+    {b.name for b in bad.data.bones["root"].children} == {"Hips", "Prop"} and not bad.data.bones["root"].use_deform,
+    "the old roots hang under it and the new root does not deform",
+)
 
 # ---- static meshes: centered, rotation and scale baked in, the scene untouched
 sc, s = reset()
@@ -128,8 +135,10 @@ bpy.context.view_layer.objects.active = crate
 check(bpy.ops.ue5_bridge.export_static() == {"FINISHED"}, "static export operator")
 path = os.path.join(tmp, "StaticMeshes", "SM_Crate_A.fbx")
 check(os.path.exists(path), f"static FBX written: {os.listdir(tmp)}")
-check(tuple(crate.location) == located and tuple(crate.scale) == (2.0, 1.0, 0.5) and crate.name == "Crate A",
-      "the scene object was not touched")
+check(
+    tuple(crate.location) == located and tuple(crate.scale) == (2.0, 1.0, 0.5) and crate.name == "Crate A",
+    "the scene object was not touched",
+)
 if os.path.exists(path):
     imported = import_fbx(path)
     meshes = [o for o in imported if o.type == "MESH"]
@@ -137,17 +146,62 @@ if os.path.exists(path):
     if meshes:
         bpy.context.view_layer.update()
         size = world_size(meshes[0])
-        check(all(abs(a - b) < 0.02 * max(b, 0.1) for a, b in zip(size, expected, strict=True)),
-              f"size survives the FBX round trip (units, axes): {[round(x, 3) for x in size]} vs "
-              f"{[round(x, 3) for x in expected]}")
+        check(
+            all(abs(a - b) < 0.02 * max(b, 0.1) for a, b in zip(size, expected, strict=True)),
+            f"size survives the FBX round trip (units, axes): {[round(x, 3) for x in size]} vs "
+            f"{[round(x, 3) for x in expected]}",
+        )
         centre = sum((meshes[0].matrix_world @ Vector(c) for c in meshes[0].bound_box), Vector()) / 8
         check(centre.length < 0.05, f"the part is centered at the origin: {tuple(round(x, 3) for x in centre)}")
     remove(imported)
 
+# ---- collision shapes travel in the same FBX, named the way Unreal matches them
+sc, s = reset()
+bpy.ops.mesh.primitive_cube_add(size=2, location=(5, 3, 1))
+rock = bpy.context.object
+rock.name = "Rock"
+bpy.ops.mesh.primitive_cube_add(size=1, location=(5, 3, 3))
+shape = bpy.context.object
+shape.name = "UBX_Rock_00"
+shape.parent = rock
+shape.matrix_parent_inverse = rock.matrix_world.inverted()
+bpy.context.view_layer.update()
+for o in bpy.context.view_layer.objects:
+    o.select_set(o in (rock, shape))
+bpy.context.view_layer.objects.active = rock
+check(bpy.ops.ue5_bridge.export_static() == {"FINISHED"}, "static export with a collision shape")
+rock_files = sorted(f for f in os.listdir(os.path.join(tmp, "StaticMeshes")) if "Rock" in f)
+check(rock_files == ["SM_Rock.fbx"], f"collision shapes are not exported as meshes of their own: {rock_files}")
+imported = import_fbx(os.path.join(tmp, "StaticMeshes", "SM_Rock.fbx"))
+bpy.context.view_layer.update()
+by_name = {o.name: o for o in imported if o.type == "MESH"}
+check(
+    sorted(by_name) == ["UBX_ue_tmp_Rock_00", "ue_tmp_Rock"], f"mesh and shape share Unreal's naming: {sorted(by_name)}"
+)
+if len(by_name) == 2:
+
+    def middle(o):
+        return sum((o.matrix_world @ Vector(c) for c in o.bound_box), Vector()) / 8
+
+    offset = middle(by_name["UBX_ue_tmp_Rock_00"]) - middle(by_name["ue_tmp_Rock"])
+    check(
+        (offset - Vector((0, 0, 2))).length < 0.05,
+        f"the shape keeps its place relative to the mesh: {tuple(round(x, 3) for x in offset)}",
+    )
+remove(imported)
+
 # ---- skeletal meshes: two roots, scaled armature object, two modular parts
 sc, s = reset()
-skeleton = make_rig("Hero", [("Hips", None, (0, 0, 1)), ("Spine", "Hips", (0, 0, 1.1)), ("Head", "Spine", (0, 0, 1.2)),
-                             ("Prop", None, (0.5, 0, 1))], location=(4, 2, 0))
+skeleton = make_rig(
+    "Hero",
+    [
+        ("Hips", None, (0, 0, 1)),
+        ("Spine", "Hips", (0, 0, 1.1)),
+        ("Head", "Spine", (0, 0, 1.2)),
+        ("Prop", None, (0.5, 0, 1)),
+    ],
+    location=(4, 2, 0),
+)
 body = skinned_box("body", skeleton, {"Hips": 0.5, "Spine": 0.5}, location=(4, 2, 1.0))
 jacket = skinned_box("jacket", skeleton, {"Spine": 0.6, "Head": 0.4}, location=(4, 2, 1.2))
 for o in bpy.context.view_layer.objects:
@@ -158,8 +212,10 @@ check(bpy.ops.ue5_bridge.export_skeletal() == {"FINISHED"}, "skeletal export ope
 skeletal_dir = os.path.join(tmp, "SkeletalMeshes")
 files = sorted(os.listdir(skeletal_dir)) if os.path.isdir(skeletal_dir) else []
 check(files == ["SK_body.fbx", "SK_jacket.fbx"], f"one file per modular part: {files}")
-check([b.name for b in skeleton.data.bones] == before_bones and len(rig.root_bones(skeleton)) == 2,
-      "the scene skeleton was not changed (the fix happens on the copy)")
+check(
+    [b.name for b in skeleton.data.bones] == before_bones and len(rig.root_bones(skeleton)) == 2,
+    "the scene skeleton was not changed (the fix happens on the copy)",
+)
 check(not [o for o in bpy.data.objects if o.name.startswith(rig.TEMP)], "no temporary objects are left behind")
 for name in files:
     imported = import_fbx(os.path.join(tmp, "SkeletalMeshes", name))
@@ -169,16 +225,19 @@ for name in files:
         bones = armatures[0].data.bones
         roots = [b.name for b in bones if b.parent is None]
         check(roots == ["root"] or len(roots) == 1, f"{name}: exactly one root bone in the file: {roots}")
-        check(not [b.name for b in bones if b.name.endswith("_end")], f"{name}: no phantom leaf bones: "
-              f"{[b.name for b in bones]}")
+        check(
+            not [b.name for b in bones if b.name.endswith("_end")],
+            f"{name}: no phantom leaf bones: {[b.name for b in bones]}",
+        )
         check({"Hips", "Spine", "Head", "Prop", "root"} <= {b.name for b in bones}, f"{name}: all bones present")
         mesh = next((o for o in imported if o.type == "MESH"), None)
         check(mesh is not None and len(mesh.vertex_groups) >= 2, f"{name}: the weights came along")
         if mesh is not None:
             bpy.context.view_layer.update()
             size = world_size(mesh)
-            check(all(abs(v - 0.4) < 0.02 for v in size),
-                  f"{name}: the part is 0.4 m wide: {[round(v, 3) for v in size]}")
+            check(
+                all(abs(v - 0.4) < 0.02 for v in size), f"{name}: the part is 0.4 m wide: {[round(v, 3) for v in size]}"
+            )
             low = min((mesh.matrix_world @ Vector(c)).z for c in mesh.bound_box)
             check(-0.5 < low < 1.5, f"{name}: the part keeps its place relative to the skeleton: z from {low:.2f}")
     remove(imported)
@@ -206,14 +265,27 @@ bpy.context.view_layer.objects.active = actor
 s.anim_source, s.root_motion = "ACTIONS", True
 check(bpy.ops.ue5_bridge.export_animations() == {"FINISHED"}, "animation export operator")
 anim_dir = os.path.join(tmp, "Animations")
-check(sorted(os.listdir(anim_dir)) == ["A_Actor_idle.fbx", "A_Actor_walk.fbx"],
-      f"one file per action: {os.listdir(anim_dir)}")
-check(actor.animation_data.action is None and sorted(a.name for a in bpy.data.actions) == ["idle", "walk"],
-      "the scene actions were not changed and no copies remain")
+check(
+    sorted(os.listdir(anim_dir)) == ["A_Actor_idle.fbx", "A_Actor_walk.fbx"],
+    f"one file per action: {os.listdir(anim_dir)}",
+)
+check(
+    actor.animation_data.action is None and sorted(a.name for a in bpy.data.actions) == ["idle", "walk"],
+    "the scene actions were not changed and no copies remain",
+)
 original = bpy.data.actions["walk"]
-check({tuple(round(k.co[1], 3) for k in fc.keyframe_points) for layer in original.layers for strip in layer.strips
-       for bag in strip.channelbags for fc in bag.fcurves if fc.array_index == 1} == {(0.0, 1.2, 2.4)},
-      "the original walk action keeps the motion on the hips")
+check(
+    {
+        tuple(round(k.co[1], 3) for k in fc.keyframe_points)
+        for layer in original.layers
+        for strip in layer.strips
+        for bag in strip.channelbags
+        for fc in bag.fcurves
+        if fc.array_index == 1
+    }
+    == {(0.0, 1.2, 2.4)},
+    "the original walk action keeps the motion on the hips",
+)
 
 imported = import_fbx(os.path.join(anim_dir, "A_Actor_walk.fbx"))
 arm = next((o for o in imported if o.type == "ARMATURE"), None)
@@ -260,8 +332,10 @@ for frame, matrix in before.items():
 sc.frame_set(25)
 bpy.context.view_layer.update()
 root_bone, hips_bone = actor.pose.bones["root"], actor.pose.bones["Hips"]
-check(abs(root_bone.location.y - 2.4) < 1e-3 or abs(root_bone.matrix.translation.y - 2.4) < 1e-3,
-      "the root bone is at the end of the walk")
+check(
+    abs(root_bone.location.y - 2.4) < 1e-3 or abs(root_bone.matrix.translation.y - 2.4) < 1e-3,
+    "the root bone is at the end of the walk",
+)
 check(abs(hips_bone.matrix.translation.y - 2.4) < 1e-3, "the hips still end up where the animator put them")
 try:
     motion.extract_root_motion(bpy.context, actor, walk, "root", "Spine", 1, 25)
@@ -290,8 +364,11 @@ for o in bpy.context.view_layer.objects:
 bpy.context.view_layer.objects.active = nla
 s.anim_source, s.root_motion = "NLA", False
 check(bpy.ops.ue5_bridge.export_animations() == {"FINISHED"}, "NLA export")
-check(sorted(os.listdir(os.path.join(tmp, "Animations"))) == ["A_Actor_idle.fbx", "A_Actor_walk.fbx", "A_Nla_runA.fbx",
-                                                              "A_Nla_runB.fbx"], "one file per NLA track")
+check(
+    sorted(os.listdir(os.path.join(tmp, "Animations")))
+    == ["A_Actor_idle.fbx", "A_Actor_walk.fbx", "A_Nla_runA.fbx", "A_Nla_runB.fbx"],
+    "one file per NLA track",
+)
 s.root_motion = True
 try:  # an operator that reports an ERROR raises RuntimeError when called from a script
     refused = bpy.ops.ue5_bridge.export_animations() == {"CANCELLED"}

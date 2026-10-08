@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "ue5_bridge"
-version = "0.1.0"
+version = "0.2.0"
 name = "UE5 Bridge"
 tagline = "Clean FBX export to Unreal Engine 5: skeletons, parts, animation"
 maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"

@@ -2,6 +2,17 @@
 
 Each add-on has its own version. Dates are release dates in the repository.
 
+## 2026-10-07 (UE5 pipeline)
+
+### New: Texture Kit 0.1.0, Texel Density 0.1.0, Collision Maker 0.1.0, Hard Surface Kit 0.1.0, Game Rig Kit 0.1.0
+- See [docs/ue5-pipeline.md](docs/ue5-pipeline.md).
+
+### New: Scatter Brush 0.1.0
+- Categories of models with saved randomness, scatter layers painted by a vertex group (live Geometry Nodes, bake to objects) and a click brush. See [docs/scatter_brush.md](docs/scatter_brush.md).
+
+### UE5 Bridge 0.2.0
+- Static mesh export now includes the collision shapes of a mesh (UBX_, USP_, UCP_, UCX_) in the same FBX, with matching names.
+
 ## 2026-10-07
 
 ### FiveM Toolkit 0.1.1

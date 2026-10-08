@@ -1,4 +1,5 @@
 """Quality report of a retopology result: face types, poles, edge-length evenness, distance to the source surface."""
+
 import bpy
 import numpy as np
 from bpy.app.translations import pgettext_rpt as rpt_
@@ -50,19 +51,26 @@ def analyze(context, ob, source=None):
     co = world_vertices(mesh, ob.matrix_world)
     lengths = np.linalg.norm(co[edge_verts[:, 0]] - co[edge_verts[:, 1]], axis=1)
     out = {
-        "faces": n_faces, "quads": int((sizes == 4).sum()), "tris": int((sizes == 3).sum()),
+        "faces": n_faces,
+        "quads": int((sizes == 4).sum()),
+        "tris": int((sizes == 3).sum()),
         "ngons": int((sizes > 4).sum()),
-        "pole3": int(((valence == 3) & interior).sum()), "pole5": int(((valence == 5) & interior).sum()),
-        "polen": int(((valence >= 6) & interior).sum()), "non_manifold": int(non_manifold.sum()),
+        "pole3": int(((valence == 3) & interior).sum()),
+        "pole5": int(((valence == 5) & interior).sum()),
+        "polen": int(((valence >= 6) & interior).sum()),
+        "non_manifold": int(non_manifold.sum()),
         "edge_cv": float(lengths.std() / lengths.mean()) if len(lengths) and lengths.mean() > 0 else 0.0,
-        "has_dev": False, "dev_avg": 0.0, "dev_max": 0.0,
+        "has_dev": False,
+        "dev_avg": 0.0,
+        "dev_max": 0.0,
     }
     if source is not None and n_verts:
         tree, diagonal = surface_tree(context, source)
         dist = np.array([tree.find_nearest(tuple(c))[3] for c in co.tolist()])
         if diagonal > 0:
-            out.update(has_dev=True, dev_avg=float(dist.mean() / diagonal * 100),
-                       dev_max=float(dist.max() / diagonal * 100))
+            out.update(
+                has_dev=True, dev_avg=float(dist.mean() / diagonal * 100), dev_max=float(dist.max() / diagonal * 100)
+            )
     bpy.data.meshes.remove(mesh)
     return out
 

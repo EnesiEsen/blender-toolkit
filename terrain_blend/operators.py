@@ -1,4 +1,5 @@
 """Layer list operators and the Build operator."""
+
 import os
 
 from bpy.app.translations import pgettext_rpt as rpt_
@@ -76,7 +77,8 @@ class TB_OT_from_library(Operator):
     bl_label = "Add From Texture Library"
     bl_description = (
         "Pick a folder that contains one sub-folder per texture set (for example your ambientCG downloads). "
-        "Every sub-folder with a color map becomes a layer; a vertex group with the same name becomes its mask")
+        "Every sub-folder with a color map becomes a layer; a vertex group with the same name becomes its mask"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     directory: StringProperty(subtype="DIR_PATH")
@@ -117,6 +119,7 @@ class TB_OT_from_library(Operator):
 
 def bpy_abspath(path):
     import bpy
+
     return os.path.normpath(bpy.path.abspath(path))
 
 

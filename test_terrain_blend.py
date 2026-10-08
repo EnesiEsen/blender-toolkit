@@ -6,6 +6,7 @@ and Poliigon downloads, renders with EEVEE and Cycles and checks every stripe sh
 library import, Lite mode, the Enhancer, rebuilds keeping slider values and the automatic masks.
 Environment: AK_LAYERS (default 14), BDEV_BACKEND (opengl: only the Lite material can be rendered, 32-sampler limit).
 """
+
 import colorsys
 import importlib.util
 import os
@@ -16,8 +17,9 @@ import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.join(HERE, "terrain_blend")
-spec = importlib.util.spec_from_file_location("terrain_blend", os.path.join(PKG, "__init__.py"),
-                                              submodule_search_locations=[PKG])
+spec = importlib.util.spec_from_file_location(
+    "terrain_blend", os.path.join(PKG, "__init__.py"), submodule_search_locations=[PKG]
+)
 tb = importlib.util.module_from_spec(spec)
 sys.modules["terrain_blend"] = tb
 spec.loader.exec_module(tb)
@@ -28,8 +30,12 @@ tb.register()
 LAYERS = int(os.environ.get("AK_LAYERS", 14))  # any count; the add-on has no layer limit
 OPENGL = os.environ.get("BDEV_BACKEND") == "opengl"
 NAMING = [  # (color, normal(s), rough, height) file names per vendor style
-    ("Ground_2K_Color.png", ["Ground_2K_NormalDX.png", "Ground_2K_NormalGL.png"],
-     "Ground_2K_Roughness.png", "Ground_2K_Displacement.png"),
+    (
+        "Ground_2K_Color.png",
+        ["Ground_2K_NormalDX.png", "Ground_2K_NormalGL.png"],
+        "Ground_2K_Roughness.png",
+        "Ground_2K_Displacement.png",
+    ),
     ("path_diff_2k.jpg", ["path_nor_dx_2k.png", "path_nor_gl_2k.png"], "path_rough_2k.png", "path_disp_2k.png"),
     ("Rock_COL_VAR1_2K.jpg", ["Rock_NRM_2K.jpg"], "Rock_ROUGH_2K.jpg", "Rock_DISP_2K.jpg"),
     ("only_albedo.png", [], None, None),  # missing maps fall back to flat values
@@ -172,7 +178,7 @@ def render(engine):
     w = sc.render.resolution_x
     px = img.pixels[:]
     bpy.data.images.remove(img)
-    return [px[(10 * w + k * 20 + 10) * 4:(10 * w + k * 20 + 10) * 4 + 3] for k in range(LAYERS)], px
+    return [px[(10 * w + k * 20 + 10) * 4 : (10 * w + k * 20 + 10) * 4 + 3] for k in range(LAYERS)], px
 
 
 def broken(rgb):

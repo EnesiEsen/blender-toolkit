@@ -4,6 +4,7 @@ Unreal (Motion Matching, root motion) drives the character with the root bone, s
 The hips keep only the motion that is left over (bobbing, sway), and the final pose of every frame stays exactly
 what the animator made.
 """
+
 import re
 
 from mathutils import Matrix, Vector

@@ -5,6 +5,7 @@ Covers the quality report against a brute-force reference, guide curves (marking
 original seams), the QuadriFlow and QRemeshify engines (QRemeshify parts are skipped when the extension is missing),
 the presets, the error messages and the Turkish translation.
 """
+
 import importlib.util
 import math
 import os
@@ -15,8 +16,9 @@ import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.join(HERE, "retopo_kit")
-spec = importlib.util.spec_from_file_location("retopo_kit", os.path.join(PKG, "__init__.py"),
-                                              submodule_search_locations=[PKG])
+spec = importlib.util.spec_from_file_location(
+    "retopo_kit", os.path.join(PKG, "__init__.py"), submodule_search_locations=[PKG]
+)
 rk = importlib.util.module_from_spec(spec)
 sys.modules["retopo_kit"] = rk
 spec.loader.exec_module(rk)
@@ -61,10 +63,13 @@ def reference_stats(ob):
         valence[a] = valence.get(a, 0) + 1
         valence[b] = valence.get(b, 0) + 1
     interior = [v for v in valence if v not in border]
-    return {"quads": sum(len(p.vertices) == 4 for p in m.polygons),
-            "tris": sum(len(p.vertices) == 3 for p in m.polygons),
-            "pole3": sum(valence[v] == 3 for v in interior), "pole5": sum(valence[v] == 5 for v in interior),
-            "polen": sum(valence[v] >= 6 for v in interior)}
+    return {
+        "quads": sum(len(p.vertices) == 4 for p in m.polygons),
+        "tris": sum(len(p.vertices) == 3 for p in m.polygons),
+        "pole3": sum(valence[v] == 3 for v in interior),
+        "pole5": sum(valence[v] == 5 for v in interior),
+        "polen": sum(valence[v] >= 6 for v in interior),
+    }
 
 
 # ---- quality report: quads and triangles

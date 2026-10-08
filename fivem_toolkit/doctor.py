@@ -1,6 +1,7 @@
 """The Doctor: finds what makes a FiveM asset fail (names, unapplied transforms, missing UVs or materials, oversized
 textures, ...) and fixes the safe problems with one click. Works on plain meshes before the build and on Sollumz assets.
 """
+
 import os
 
 import bpy
@@ -15,8 +16,13 @@ ROOT_TYPES = (compat.DRAWABLE, compat.FRAGMENT, compat.COMPOSITE, "sollumz_drawa
 
 
 def issue(severity, code, ob, message, data=""):
-    return {"severity": severity, "code": code, "object": ob.name if ob is not None else "", "message": message,
-            "data": data}
+    return {
+        "severity": severity,
+        "code": code,
+        "object": ob.name if ob is not None else "",
+        "message": message,
+        "data": data,
+    }
 
 
 def is_asset_root(ob):
@@ -51,8 +57,16 @@ def triangles(mesh):
 def scan_object(ob, settings, seen_images):
     found = []
     if is_asset_root(ob) and not names.is_valid(ob.name):
-        found.append(issue(ERROR, "NAME", ob, rpt_("'{name}' is not a valid asset name (use lowercase letters, digits "
-                                                  "and underscores).").format(name=ob.name)))
+        found.append(
+            issue(
+                ERROR,
+                "NAME",
+                ob,
+                rpt_("'{name}' is not a valid asset name (use lowercase letters, digits and underscores).").format(
+                    name=ob.name
+                ),
+            )
+        )
     if ob.type != "MESH" or compat.kind(ob).startswith("sollumz_bound"):
         return found
     mesh = ob.data
@@ -60,47 +74,92 @@ def scan_object(ob, settings, seen_images):
         return [*found, issue(ERROR, "EMPTY_MESH", ob, rpt_("'{name}' has no faces.").format(name=ob.name))]
     _, rotation, scale = ob.matrix_basis.decompose()
     if any(abs(c - 1.0) > 1e-4 for c in scale) or any(abs(a) > 1e-4 for a in rotation.to_euler()):
-        found.append(issue(WARNING, "TRANSFORM", ob,
-                           rpt_("'{name}' has unapplied scale or rotation.").format(name=ob.name)))
+        found.append(
+            issue(WARNING, "TRANSFORM", ob, rpt_("'{name}' has unapplied scale or rotation.").format(name=ob.name))
+        )
     if ob.modifiers:
-        found.append(issue(WARNING, "MODIFIERS", ob, rpt_("'{name}' has modifiers that are not applied.").format(
-            name=ob.name)))
+        found.append(
+            issue(WARNING, "MODIFIERS", ob, rpt_("'{name}' has modifiers that are not applied.").format(name=ob.name))
+        )
     if not mesh.uv_layers:
         found.append(issue(ERROR, "NO_UV", ob, rpt_("'{name}' has no UV map.").format(name=ob.name)))
     if not mesh.materials or any(m is None for m in mesh.materials):
-        found.append(issue(ERROR, "NO_MATERIAL", ob, rpt_("'{name}' has an empty material slot or none.").format(
-            name=ob.name)))
+        found.append(
+            issue(ERROR, "NO_MATERIAL", ob, rpt_("'{name}' has an empty material slot or none.").format(name=ob.name))
+        )
     elif len(mesh.materials) > 1 and {p.material_index for p in mesh.polygons} != set(range(len(mesh.materials))):
-        found.append(issue(WARNING, "UNUSED_SLOTS", ob, rpt_("'{name}' has material slots no face uses.").format(
-            name=ob.name)))
+        found.append(
+            issue(WARNING, "UNUSED_SLOTS", ob, rpt_("'{name}' has material slots no face uses.").format(name=ob.name))
+        )
     tris = triangles(mesh)
     if tris > settings.tri_limit:
-        found.append(issue(WARNING, "TRI_COUNT", ob, rpt_("'{name}' has {tris} triangles (limit {limit}).").format(
-            name=ob.name, tris=tris, limit=settings.tri_limit)))
+        found.append(
+            issue(
+                WARNING,
+                "TRI_COUNT",
+                ob,
+                rpt_("'{name}' has {tris} triangles (limit {limit}).").format(
+                    name=ob.name, tris=tris, limit=settings.tri_limit
+                ),
+            )
+        )
     limit = int(settings.max_texture)
     for material in mesh.materials:
         for image in material_images(material):
             if image is None:
-                found.append(issue(ERROR, "TEXTURE_MISSING", ob,
-                                   rpt_("A texture node in '{material}' has no image.").format(material=material.name)))
+                found.append(
+                    issue(
+                        ERROR,
+                        "TEXTURE_MISSING",
+                        ob,
+                        rpt_("A texture node in '{material}' has no image.").format(material=material.name),
+                    )
+                )
                 continue
             if image in seen_images:
                 continue
             seen_images.add(image)
             if not image.has_data and not image.packed_file and not os.path.exists(bpy.path.abspath(image.filepath)):
-                found.append(issue(ERROR, "TEXTURE_MISSING", ob, rpt_("Image '{image}' is missing on disk.").format(
-                    image=image.name), image.name))
+                found.append(
+                    issue(
+                        ERROR,
+                        "TEXTURE_MISSING",
+                        ob,
+                        rpt_("Image '{image}' is missing on disk.").format(image=image.name),
+                        image.name,
+                    )
+                )
                 continue
             width, height = image.size
-            if width and height and (width, height) != textures.pow2_size(width, height, limit) and (
-                    width > limit or height > limit or (width & (width - 1)) or (height & (height - 1))):
-                found.append(issue(WARNING, "TEXTURE_SIZE", ob, rpt_(
-                    "Image '{image}' is {w}x{h}: use a power of two up to {limit}.").format(
-                        image=image.name, w=width, h=height, limit=limit), image.name))
+            if (
+                width
+                and height
+                and (width, height) != textures.pow2_size(width, height, limit)
+                and (width > limit or height > limit or (width & (width - 1)) or (height & (height - 1)))
+            ):
+                found.append(
+                    issue(
+                        WARNING,
+                        "TEXTURE_SIZE",
+                        ob,
+                        rpt_("Image '{image}' is {w}x{h}: use a power of two up to {limit}.").format(
+                            image=image.name, w=width, h=height, limit=limit
+                        ),
+                        image.name,
+                    )
+                )
             if not textures.is_dds(image):
-                found.append(issue(WARNING, "TEXTURE_FORMAT", ob, rpt_(
-                    "Image '{image}' is not a DDS file: FiveM needs DDS (the fix converts it).").format(
-                        image=image.name), image.name))
+                found.append(
+                    issue(
+                        WARNING,
+                        "TEXTURE_FORMAT",
+                        ob,
+                        rpt_("Image '{image}' is not a DDS file: FiveM needs DDS (the fix converts it).").format(
+                            image=image.name
+                        ),
+                        image.name,
+                    )
+                )
     return found
 
 
@@ -119,9 +178,14 @@ def scan(objects, settings):
             asset_names.setdefault(names.asset_name(ob.name), []).append(ob)
     for name, owners in asset_names.items():
         if len(owners) > 1:
-            found.append(issue(ERROR, "DUPLICATE_NAME", owners[1],
-                               rpt_("{count} assets would be exported as '{name}'.").format(
-                                   count=len(owners), name=name)))
+            found.append(
+                issue(
+                    ERROR,
+                    "DUPLICATE_NAME",
+                    owners[1],
+                    rpt_("{count} assets would be exported as '{name}'.").format(count=len(owners), name=name),
+                )
+            )
     return found
 
 
@@ -206,10 +270,17 @@ def fix_texture_format(context, item):
     textures.convert_image(bpy.data.images[item["data"]], int(context.scene.fk_settings.max_texture))
 
 
-FIXES = {"TEXTURE_FORMAT": fix_texture_format, "NAME": fix_name, "TRANSFORM": fix_transform,
-         "MODIFIERS": fix_modifiers, "NO_UV": fix_uv,
-         "NO_MATERIAL": fix_material, "UNUSED_SLOTS": fix_slots, "TEXTURE_SIZE": fix_texture,
-         "DUPLICATE_NAME": fix_name}
+FIXES = {
+    "TEXTURE_FORMAT": fix_texture_format,
+    "NAME": fix_name,
+    "TRANSFORM": fix_transform,
+    "MODIFIERS": fix_modifiers,
+    "NO_UV": fix_uv,
+    "NO_MATERIAL": fix_material,
+    "UNUSED_SLOTS": fix_slots,
+    "TEXTURE_SIZE": fix_texture,
+    "DUPLICATE_NAME": fix_name,
+}
 
 
 def fix(context, item):

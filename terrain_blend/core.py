@@ -1,4 +1,5 @@
 """Orchestration: validate the layers, then build the mask modifier, the node group and the material."""
+
 import os
 
 import bpy
@@ -30,6 +31,7 @@ def is_built(ob):
 def gpu_backend():
     try:
         import gpu
+
         return gpu.platform.backend_type_get()
     except (SystemError, ImportError):  # no GPU context (background mode without one)
         return "UNKNOWN"
@@ -47,8 +49,9 @@ def check_layers(ob):
             raise ValueError(rpt_("'{name}': texture folder not found.").format(name=layer.name))
         found = maps_mod.find_maps(folder)
         if "color" not in found:
-            raise ValueError(rpt_("'{name}': no color texture in the folder (Color/Albedo/Diffuse).").format(
-                name=layer.name))
+            raise ValueError(
+                rpt_("'{name}': no color texture in the folder (Color/Albedo/Diffuse).").format(name=layer.name)
+            )
         if i and layer.mask not in ob.vertex_groups:
             raise ValueError(rpt_("'{name}': mask vertex group is not set or missing.").format(name=layer.name))
         found_maps.append(found)
@@ -86,15 +89,20 @@ def build(ob):
     displacement.inputs["Scale"].default_value = 1.0
     output = nt.nodes.new("ShaderNodeOutputMaterial")
     output.location = (350, 0)
-    for out_name, target in (("Base Color", bsdf.inputs["Base Color"]), ("Roughness", bsdf.inputs["Roughness"]),
-                             ("Normal", bsdf.inputs["Normal"]), ("Displacement", displacement.inputs["Height"])):
+    for out_name, target in (
+        ("Base Color", bsdf.inputs["Base Color"]),
+        ("Roughness", bsdf.inputs["Roughness"]),
+        ("Normal", bsdf.inputs["Normal"]),
+        ("Displacement", displacement.inputs["Height"]),
+    ):
         nt.links.new(group.outputs[out_name], target)
     nt.links.new(bsdf.outputs[0], output.inputs["Surface"])
     nt.links.new(displacement.outputs[0], output.inputs["Displacement"])
     restore_values(tree, group, old_values)
 
     message = rpt_("{layers} layers, {textures} textures: '{material}'").format(
-        layers=len(layers), textures=tree["tb_textures"], material=mat.name)
+        layers=len(layers), textures=tree["tb_textures"], material=mat.name
+    )
     if not ob.material_slots:
         ob.data.materials.append(mat)
     elif ob.active_material != mat:

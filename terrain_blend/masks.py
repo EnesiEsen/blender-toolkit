@@ -4,6 +4,7 @@ EEVEE reads at most 14 mesh attributes per material, and Blender 5.0's EEVEE can
 all. Both limits are avoided by storing four vertex groups per FLOAT_COLOR point attribute (tb_mask0 = RGBA of
 masks 1-4, tb_mask1 = masks 5-8, ...). The modifier re-evaluates while weight painting, so the material follows live.
 """
+
 import bpy
 
 from .shader import node
@@ -23,7 +24,7 @@ def build_mask_modifier(ob, masks):
     for pack in range(0, len(masks), 4):
         x = (pack // 4) * 500
         combine = node(tree, "FunctionNodeCombineColor", x, -300)
-        for channel, group in enumerate(masks[pack:pack + 4]):
+        for channel, group in enumerate(masks[pack : pack + 4]):
             attribute = node(tree, "GeometryNodeInputNamedAttribute", x - 250, -200 - channel * 150, data_type="FLOAT")
             attribute.inputs["Name"].default_value = group
             tree.links.new(attribute.outputs["Attribute"], combine.inputs[channel])

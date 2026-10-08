@@ -2,6 +2,7 @@
 
 Sollumz must be installed and enabled. See README.md for the workflow.
 """
+
 import bpy
 from bpy.props import CollectionProperty, PointerProperty
 

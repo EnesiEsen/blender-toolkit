@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+
+id = "collision_maker"
+version = "0.1.0"
+name = "Collision Maker"
+tagline = "Unreal collision shapes (UBX, USP, UCP, UCX) in one click"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Mesh", "Import-Export"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]

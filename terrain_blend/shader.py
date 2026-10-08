@@ -4,6 +4,7 @@ Per layer, from the second one on: height-based blend (the layer wins where its 
 above what is below it), softened by noise. Optional "Enhancer": procedural detail normal, crevice dirt and micro
 displacement, which add no image textures (so no sampler budget).
 """
+
 import bpy
 
 ENHANCER_PANEL = "Enhancer"
@@ -162,9 +163,15 @@ def build_group(ob, layers, maps, lite=False, enhancer=False):
     tree.nodes.clear()
     tree.interface.clear()
     face = tree.interface
-    outputs = {n: face.new_socket(n, in_out="OUTPUT", socket_type=t) for n, t in (
-        ("Base Color", "NodeSocketColor"), ("Roughness", "NodeSocketFloat"),
-        ("Normal", "NodeSocketVector"), ("Displacement", "NodeSocketFloat"))}
+    outputs = {
+        n: face.new_socket(n, in_out="OUTPUT", socket_type=t)
+        for n, t in (
+            ("Base Color", "NodeSocketColor"),
+            ("Roughness", "NodeSocketFloat"),
+            ("Normal", "NodeSocketVector"),
+            ("Displacement", "NodeSocketFloat"),
+        )
+    }
 
     def slider(label, default, lo, hi, panel=None):
         s = face.new_socket(label, in_out="INPUT", socket_type="NodeSocketFloat", parent=panel)
@@ -210,12 +217,23 @@ def build_group(ob, layers, maps, lite=False, enhancer=False):
 
     mask_sockets = []
     for pack in range((len(layers) - 1 + 3) // 4):
-        attribute = node(tree, "ShaderNodeAttribute", -1550, -300 - pack * 300, shared,
-                         attribute_type="GEOMETRY", attribute_name=f"tb_mask{pack}")
+        attribute = node(
+            tree,
+            "ShaderNodeAttribute",
+            -1550,
+            -300 - pack * 300,
+            shared,
+            attribute_type="GEOMETRY",
+            attribute_name=f"tb_mask{pack}",
+        )
         separate = node(tree, "ShaderNodeSeparateColor", -1350, -300 - pack * 300, shared)
         tree.links.new(attribute.outputs["Color"], separate.inputs[0])
-        mask_sockets += [separate.outputs["Red"], separate.outputs["Green"], separate.outputs["Blue"],
-                         attribute.outputs["Alpha"]]
+        mask_sockets += [
+            separate.outputs["Red"],
+            separate.outputs["Green"],
+            separate.outputs["Blue"],
+            attribute.outputs["Alpha"],
+        ]
 
     color = normal = rough = height = None
     textures = 0
@@ -252,16 +270,27 @@ def build_group(ob, layers, maps, lite=False, enhancer=False):
     tree.links.new(normal, normal_map.inputs["Color"])
     tree.links.new(by_id(gin.outputs, normal_strength.identifier), normal_map.inputs["Strength"])
     final_normal = normal_map.outputs["Normal"]
-    relief_value = math(tree, "MULTIPLY", end, -300, None,
-                        math(tree, "SUBTRACT", end - 200, -300, None, height, 0.5),
-                        by_id(gin.outputs, relief.identifier))
+    relief_value = math(
+        tree,
+        "MULTIPLY",
+        end,
+        -300,
+        None,
+        math(tree, "SUBTRACT", end - 200, -300, None, height, 0.5),
+        by_id(gin.outputs, relief.identifier),
+    )
     if enhancer:
         color, rough, final_normal, relief_value = apply_enhancer(
-            tree, gin, enh, coord, color, rough, final_normal, relief_value, end + 300)
+            tree, gin, enh, coord, color, rough, final_normal, relief_value, end + 300
+        )
         end += 1800
     gout = node(tree, "NodeGroupOutput", end + 300, 0)
-    for key, value in (("Base Color", color), ("Roughness", rough),
-                       ("Normal", final_normal), ("Displacement", relief_value)):
+    for key, value in (
+        ("Base Color", color),
+        ("Roughness", rough),
+        ("Normal", final_normal),
+        ("Displacement", relief_value),
+    ):
         tree.links.new(value, by_id(gout.inputs, outputs[key].identifier))
     tree["tb_textures"] = textures
     return tree

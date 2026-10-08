@@ -1,4 +1,5 @@
 """Sidebar panel: layer list, layer settings, options and the live sliders of the material."""
+
 import bpy
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.types import Panel, UIList
@@ -68,14 +69,20 @@ class TB_PT_panel(Panel):
         if core.gpu_backend() == "OPENGL" and textures > core.OPENGL_TEXTURE_LIMIT:
             warn = layout.box()
             warn.alert = True
-            warn.label(text=iface_("{count} textures: EEVEE on OpenGL shows pink above {limit}.").format(
-                count=textures, limit=core.OPENGL_TEXTURE_LIMIT), icon="ERROR")
+            warn.label(
+                text=iface_("{count} textures: EEVEE on OpenGL shows pink above {limit}.").format(
+                    count=textures, limit=core.OPENGL_TEXTURE_LIMIT
+                ),
+                icon="ERROR",
+            )
             warn.label(text=iface_("Turn on Lite Preview, use Cycles, or the Vulkan backend (Blender 5.2+)."))
         if len(ob.tb_layers) > core.EEVEE_LAYER_LIMIT:
             warn = layout.box()
             warn.alert = True
-            warn.label(text=iface_("EEVEE shows at most {limit} layers (GPU limit).").format(
-                limit=core.EEVEE_LAYER_LIMIT), icon="ERROR")
+            warn.label(
+                text=iface_("EEVEE shows at most {limit} layers (GPU limit).").format(limit=core.EEVEE_LAYER_LIMIT),
+                icon="ERROR",
+            )
             warn.label(text=iface_("Cycles has no limit; use it for the final render."))
 
     def draw_sliders(self, layout, ob, tree, group):

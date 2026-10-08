@@ -1,4 +1,5 @@
 """Sidebar panels. The target (Prop, MLO, Ped) chooses which settings and buttons are shown."""
+
 import textwrap
 
 from bpy.app.translations import pgettext_iface as iface_
@@ -34,8 +35,12 @@ def draw_prop(layout, context, s):
 
 
 def draw_mlo(layout, context, s):
-    wrapped(layout, "Select the interior collection in the outliner. Inside it: room.<name> sub-collections with "
-            "the meshes, and portal.<room>.<room> quads (limbo = outside).", icon="INFO")
+    wrapped(
+        layout,
+        "Select the interior collection in the outliner. Inside it: room.<name> sub-collections with "
+        "the meshes, and portal.<room>.<room> quads (limbo = outside).",
+        icon="INFO",
+    )
     layout.operator("fivem_toolkit.mlo_template", icon="ADD")
     col = layout.column(align=True)
     col.prop(s, "mlo_collision")
@@ -49,8 +54,12 @@ def draw_mlo(layout, context, s):
 
 
 def draw_ped(layout, context, s):
-    wrapped(layout, "Select the rigged meshes. Check Assets (Doctor below) lists weight problems; Retarget Weights "
-            "moves the weights onto GTA bones without losing them.", icon="INFO")
+    wrapped(
+        layout,
+        "Select the rigged meshes. Check Assets (Doctor below) lists weight problems; Retarget Weights "
+        "moves the weights onto GTA bones without losing them.",
+        icon="INFO",
+    )
     col = layout.column(align=True)
     col.prop(s, "ped_armature")
     col.prop(s, "ped_backup")
@@ -73,8 +82,11 @@ class FK_PT_main(Panel):
         layout = self.layout
         s = context.scene.fk_settings
         if not compat.ready():
-            wrapped(layout.box(), "Sollumz is not installed or not enabled. Install it from Preferences > "
-                    "Get Extensions.", icon="ERROR")
+            wrapped(
+                layout.box(),
+                "Sollumz is not installed or not enabled. Install it from Preferences > Get Extensions.",
+                icon="ERROR",
+            )
         layout.prop(s, "target", expand=True)
         TARGETS[s.target](layout, context, s)
 

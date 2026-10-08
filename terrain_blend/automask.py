@@ -1,4 +1,5 @@
 """Generate a vertex-group mask from slope, height or noise, so layers can be placed without hand painting."""
+
 import numpy as np
 from bpy.app.translations import pgettext_rpt as rpt_
 from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty, StringProperty
@@ -63,19 +64,28 @@ class TB_OT_auto_mask(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     group: StringProperty(name="Vertex Group", description="Created when it does not exist")
-    mode: EnumProperty(name="Source", items=(
-        ("SLOPE", "Slope", "Steepness of the surface (0 = flat, 90 = vertical)"),
-        ("HEIGHT", "Height", "World-space height in meters"),
-        ("NOISE", "Noise", "Random patches"),
-    ), default="SLOPE", update=_mode_changed)
+    mode: EnumProperty(
+        name="Source",
+        items=(
+            ("SLOPE", "Slope", "Steepness of the surface (0 = flat, 90 = vertical)"),
+            ("HEIGHT", "Height", "World-space height in meters"),
+            ("NOISE", "Noise", "Random patches"),
+        ),
+        default="SLOPE",
+        update=_mode_changed,
+    )
     low: FloatProperty(name="From", default=20.0, description="Value where the mask starts (degrees, meters or 0-1)")
     high: FloatProperty(name="To", default=40.0, description="Value where the mask reaches 1")
     invert: BoolProperty(name="Invert", default=False)
-    combine: EnumProperty(name="Combine", items=(
-        ("REPLACE", "Replace", "Overwrite the group"),
-        ("MULTIPLY", "Intersect", "Keep only where both the old and the new mask are set"),
-        ("MAX", "Union", "Keep where either the old or the new mask is set"),
-    ), default="REPLACE")
+    combine: EnumProperty(
+        name="Combine",
+        items=(
+            ("REPLACE", "Replace", "Overwrite the group"),
+            ("MULTIPLY", "Intersect", "Keep only where both the old and the new mask are set"),
+            ("MAX", "Union", "Keep where either the old or the new mask is set"),
+        ),
+        default="REPLACE",
+    )
     noise_scale: FloatProperty(name="Noise Scale", default=0.1, min=0.0001, description="Patch size (1 / meters)")
     seed: IntProperty(name="Seed", default=0)
 
@@ -115,8 +125,9 @@ class TB_OT_auto_mask(Operator):
             value = z
         else:
             offset = Vector((self.seed * 17.3, self.seed * 31.7, self.seed * 5.9))
-            value = np.array([noise.noise(Vector(c) * self.noise_scale + offset) * 0.5 + 0.5 for c in co.tolist()],
-                             dtype=np.float32)
+            value = np.array(
+                [noise.noise(Vector(c) * self.noise_scale + offset) * 0.5 + 0.5 for c in co.tolist()], dtype=np.float32
+            )
         low, high = RANGE_DEFAULTS[self.mode]
         if self.properties.is_property_set("low"):  # a script or the dialog chose the range
             low = self.low
@@ -130,8 +141,12 @@ class TB_OT_auto_mask(Operator):
             old = read_weights(ob, group)
             weights = weights * old if self.combine == "MULTIPLY" else np.maximum(weights, old)
         write_weights(ob, group, weights)
-        self.report({"INFO"}, rpt_("Mask '{group}': {count} of {total} vertices set").format(
-            group=group.name, count=int((weights > 0.003).sum()), total=len(weights)))
+        self.report(
+            {"INFO"},
+            rpt_("Mask '{group}': {count} of {total} vertices set").format(
+                group=group.name, count=int((weights > 0.003).sum()), total=len(weights)
+            ),
+        )
         return {"FINISHED"}
 
 

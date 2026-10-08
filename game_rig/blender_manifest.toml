@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+
+id = "game_rig"
+version = "0.1.0"
+name = "Game Rig Kit"
+tagline = "UE5 mannequin skeleton, skinning, IK and animation retarget"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Rigging", "Animation"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]

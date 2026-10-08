@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+
+id = "hardsurface_kit"
+version = "0.1.0"
+name = "Hard Surface Kit"
+tagline = "Non-destructive bevels, cutters, arrays and game-ready cleanup"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Modeling", "Mesh"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]

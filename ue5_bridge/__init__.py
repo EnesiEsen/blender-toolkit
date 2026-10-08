@@ -2,6 +2,7 @@
 
 Everything is exported from temporary copies, so the scene stays untouched. See README.md.
 """
+
 import bpy
 from bpy.props import CollectionProperty, PointerProperty
 

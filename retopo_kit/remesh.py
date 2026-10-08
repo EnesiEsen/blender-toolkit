@@ -1,4 +1,5 @@
 """The one-click retopology: prepare a copy, run the engine, tidy the result, measure it."""
+
 import math
 
 import bpy
@@ -62,15 +63,15 @@ def run(context, src, settings):
     work = meshing.working_copy(context, src, for_quadwild=engine == "QREMESHIFY", use_guides=settings.use_guides)
     try:
         if engine == "QUADRIFLOW":
-            result = meshing.run_quadriflow(context, work, settings.target_faces, preset in ("SIMPLE", "HARD"),
-                                            any(symmetry))
+            result = meshing.run_quadriflow(
+                context, work, settings.target_faces, preset in ("SIMPLE", "HARD"), any(symmetry)
+            )
             work = None  # QuadriFlow remeshed the copy in place: the copy is the result
             passes = 1
         else:
             # QuadWild's own preprocessing resamples the mesh and moves guide lines off their place, so it is skipped
             # when guides are followed (the working copy is already cleaned and kept inside QuadWild's size range).
-            cfg = {"smoothing": smoothing, "sharp_angle": sharp_angle, "symmetry": symmetry,
-                   "preprocess": not followed}
+            cfg = {"smoothing": smoothing, "sharp_angle": sharp_angle, "symmetry": symmetry, "preprocess": not followed}
             scale, passes = 1.0, 1
             result = meshing.run_qremeshify(context, work, cfg, scale)
             faces = len(result.data.polygons)
@@ -86,9 +87,9 @@ def run(context, src, settings):
     data = report.analyze(context, result, src)
     report.store(context, result.name, data)
     quad_pct = 100.0 * data["quads"] / max(1, data["faces"])
-    message = rpt_("{preset}/{engine}: {faces} faces, {quads:.0f}% quads, deviation {dev:.2f}%, "
-                   "{passes} pass(es)").format(preset=preset, engine=engine, faces=data["faces"], quads=quad_pct,
-                                               dev=data["dev_avg"], passes=passes)
+    message = rpt_(
+        "{preset}/{engine}: {faces} faces, {quads:.0f}% quads, deviation {dev:.2f}%, {passes} pass(es)"
+    ).format(preset=preset, engine=engine, faces=data["faces"], quads=quad_pct, dev=data["dev_avg"], passes=passes)
     if followed:
         message += rpt_(", guides followed")
     if ignored_guides:

@@ -1,5 +1,6 @@
 """Asset names. GTA looks assets up by the hash of the lower-case name, so spaces, capitals and Blender's .001
 suffixes break it."""
+
 import re
 
 

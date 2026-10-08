@@ -2,6 +2,7 @@
 for Unreal (one root bone, no object transform surprises, centered at the origin) is done on copies that are deleted
 after the export.
 """
+
 import bpy
 from bpy.app.translations import pgettext_rpt as rpt_
 
@@ -22,20 +23,43 @@ def scan(armature):
     found = []
     roots = root_bones(armature)
     if len(roots) > 1:
-        found.append(issue(ERROR, "MULTI_ROOT", armature, rpt_(
-            "'{name}' has {count} root bones ({roots}): UE5 needs exactly one.").format(
-                name=armature.name, count=len(roots), roots=", ".join(b.name for b in roots[:4]))))
+        found.append(
+            issue(
+                ERROR,
+                "MULTI_ROOT",
+                armature,
+                rpt_("'{name}' has {count} root bones ({roots}): UE5 needs exactly one.").format(
+                    name=armature.name, count=len(roots), roots=", ".join(b.name for b in roots[:4])
+                ),
+            )
+        )
     if not any(b.use_deform for b in armature.data.bones):
-        found.append(issue(ERROR, "NO_DEFORM", armature,
-                           rpt_("'{name}' has no deform bones.").format(name=armature.name)))
+        found.append(
+            issue(ERROR, "NO_DEFORM", armature, rpt_("'{name}' has no deform bones.").format(name=armature.name))
+        )
     _, rotation, scale = armature.matrix_world.decompose()
     if any(abs(c - 1.0) > 1e-4 for c in scale) or any(abs(a) > 1e-4 for a in rotation.to_euler()):
-        found.append(issue(WARNING, "ARMATURE_TRANSFORM", armature, rpt_(
-            "'{name}' has scale or rotation on the object: apply it (Ctrl+A) before animating.").format(
-                name=armature.name)))
+        found.append(
+            issue(
+                WARNING,
+                "ARMATURE_TRANSFORM",
+                armature,
+                rpt_("'{name}' has scale or rotation on the object: apply it (Ctrl+A) before animating.").format(
+                    name=armature.name
+                ),
+            )
+        )
     if armature.name.lower().startswith("armature"):
-        found.append(issue(INFO, "ARMATURE_NAME", armature, rpt_(
-            "'{name}' keeps Blender's default name: UE5 can mistake it for a bone.").format(name=armature.name)))
+        found.append(
+            issue(
+                INFO,
+                "ARMATURE_NAME",
+                armature,
+                rpt_("'{name}' keeps Blender's default name: UE5 can mistake it for a bone.").format(
+                    name=armature.name
+                ),
+            )
+        )
     return found
 
 
@@ -130,8 +154,12 @@ class RigCopy:
         for ob in everything:
             ob.select_set(True)
         context.view_layer.objects.active = self.armature
-        with context.temp_override(object=self.armature, active_object=self.armature, selected_objects=everything,
-                                   selected_editable_objects=everything):
+        with context.temp_override(
+            object=self.armature,
+            active_object=self.armature,
+            selected_objects=everything,
+            selected_editable_objects=everything,
+        ):
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=True, properties=False)
 
     def cleanup(self):

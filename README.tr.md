@@ -1,7 +1,8 @@
 # Blender Toolkit
 
-Oyun varlığı hazırlarken zaman yiyen tekrarlı işleri ortadan kaldıran dört Blender eklentisi: birçok arazi dokusunu
-karıştırma, her modele retopoloji, FiveM'e prop ve karakter aktarma, Unreal Engine 5 için temiz FBX dışa aktarma.
+Oyun varlığı hazırlarken zaman yiyen tekrarlı işleri ortadan kaldıran on Blender eklentisi: birçok arazi dokusunu
+karıştırma, her modele retopoloji, FiveM'e prop ve karakter aktarma ve Unreal Engine 5'e tam bir hat (sert yüzey modelleme,
+texel yoğunluğu, dokular, çarpışma, rig ve FBX dışa aktarma) ve çimen, taş, ağaç serpiştiren bir fırça.
 
 **Blender 5.0 – 5.2** (5.0.1 ve 5.2.0 LTS'de test edildi) · GPL-3.0-or-later · Türkçe ve İngilizce arayüz
 
@@ -13,6 +14,12 @@ karıştırma, her modele retopoloji, FiveM'e prop ve karakter aktarma, Unreal E
 | **Retopo Kit** | Prop, araç ve karakter için tek tıkla quad retopoloji; rehber eğriler ve kalite raporu. | [docs/retopo_kit.tr.md](docs/retopo_kit.tr.md) |
 | **FiveM Toolkit** | Sollumz üzerine kurulu: prop, MLO iç mekân ve ped kıyafeti için kontrol, düzeltme, derleme ve dışa aktarma. | [docs/fivem_toolkit.tr.md](docs/fivem_toolkit.tr.md) |
 | **UE5 Bridge** | Unreal Engine 5 için FBX: statik mesh, modüler iskeletli mesh, animasyon, root motion. | [docs/ue5_bridge.tr.md](docs/ue5_bridge.tr.md) |
+| **Texture Kit** | Doku kontrolü, normal map çevirme, ORM paketleme ve Unreal adlı dışa aktarma. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#texture-kit) |
+| **Texel Density** | Her varlığın doku yoğunluğunu ölç, renk olarak göster ve ayarla. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#texel-density) |
+| **Collision Maker** | UBX / USP / UCP / UCX çarpışma şekilleri ve denetleyici, mesh ile birlikte dışa aktarılır. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#collision-maker) |
+| **Hard Surface Kit** | Yıkıcı olmayan bevel, kesici, dizi, olak ve oyuna hazır mesh için Stack'i Uygula. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#hard-surface-kit) |
+| **Game Rig Kit** | UE5 mannequin iskeleti, ağırlıklandırma, IK, yeniden adlandırma ve animasyon retarget. | [docs/ue5-pipeline.tr.md](docs/ue5-pipeline.tr.md#game-rig-kit) |
+| **Scatter Brush** | Weight paint ile boyadığın yere ya da tıklama fırçasıyla çimen, taş, ağaç serpiştirir; kategoriler ve kayıtlı rastgelelik. | [docs/scatter_brush.tr.md](docs/scatter_brush.tr.md) |
 
 ![Terrain Blend](docs/images/terrain_blend.png)
 

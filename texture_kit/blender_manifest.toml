@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "texture_kit"
+version = "0.1.0"
+name = "Texture Kit"
+tagline = "Texture checks, ORM packing and Unreal-ready export"
+maintainer = "Enes Esen <87365120+EnesiEsen@users.noreply.github.com>"
+type = "add-on"
+tags = ["Material", "Import-Export"]
+
+blender_version_min = "5.0.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Reads textures and writes the exported texture files"

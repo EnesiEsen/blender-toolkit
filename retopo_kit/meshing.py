@@ -1,4 +1,5 @@
 """Mesh preparation and the two remesh engines (QuadriFlow built in, QRemeshify optional)."""
+
 import math
 
 import bmesh
@@ -91,8 +92,13 @@ def acting_on(context, ob):
 def run_quadriflow(context, work, faces, sharp, symmetry):
     with acting_on(context, work):
         result = bpy.ops.object.quadriflow_remesh(
-            target_faces=faces, mode="FACES", use_mesh_symmetry=symmetry, use_preserve_sharp=sharp,
-            use_preserve_boundary=sharp, smooth_normals=False)
+            target_faces=faces,
+            mode="FACES",
+            use_mesh_symmetry=symmetry,
+            use_preserve_sharp=sharp,
+            use_preserve_boundary=sharp,
+            smooth_normals=False,
+        )
     if result != {"FINISHED"} or not len(work.data.polygons):
         raise RetopoError("QuadriFlow could not remesh this mesh (it must be closed and free of loose parts).")
     return work
@@ -102,8 +108,20 @@ def run_qremeshify(context, work, cfg, scale):
     """Run QRemeshify on the working copy; returns the new object. QRemeshify's own settings are restored afterwards."""
     sc = context.scene
     qw, qp = sc.quadwild_props, sc.quadpatches_props
-    saved = {k: getattr(qw, k) for k in ("debug", "useCache", "enableRemesh", "enableSmoothing", "enableSharp",
-                                           "sharpAngle", "symmetryX", "symmetryY", "symmetryZ")}
+    saved = {
+        k: getattr(qw, k)
+        for k in (
+            "debug",
+            "useCache",
+            "enableRemesh",
+            "enableSmoothing",
+            "enableSharp",
+            "sharpAngle",
+            "symmetryX",
+            "symmetryY",
+            "symmetryZ",
+        )
+    }
     saved_scale = qp.scaleFact
     try:
         qw.debug, qw.useCache, qw.enableRemesh, qw.enableSharp = False, False, cfg.get("preprocess", True), True

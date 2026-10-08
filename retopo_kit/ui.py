@@ -1,4 +1,5 @@
 """Sidebar panels: one-click retopology, guides and the quality report."""
+
 import textwrap
 
 from bpy.app.translations import pgettext_iface as iface_
@@ -34,8 +35,11 @@ class RK_PT_main(Panel):
         col.prop(s, "hide_source")
         layout.operator("retopo_kit.retopo", icon="MOD_REMESH")
         if not meshing.qremeshify_available():
-            wrapped(layout.box(), "QRemeshify is not installed: using QuadriFlow. Install it for guide curves and "
-                    "sharper results.", icon="INFO")
+            wrapped(
+                layout.box(),
+                "QRemeshify is not installed: using QuadriFlow. Install it for guide curves and sharper results.",
+                icon="INFO",
+            )
 
         sub = layout.box()
         sub.label(text="Advanced")
@@ -66,8 +70,9 @@ class RK_PT_guides(Panel):
         col.operator("retopo_kit.clear_guides", icon="X")
         target = guides.target_of(context)
         if target is not None:
-            wrapped(layout, iface_("Guide edges on '{name}': {count}").format(
-                name=target.name, count=guides.count(target)))
+            wrapped(
+                layout, iface_("Guide edges on '{name}': {count}").format(name=target.name, count=guides.count(target))
+            )
 
 
 class RK_PT_report(Panel):
@@ -91,8 +96,10 @@ class RK_PT_report(Panel):
         col.label(text=iface_("Poles 3 / 5 / 6+: {p3} / {p5} / {pn}").format(p3=r.pole3, p5=r.pole5, pn=r.polen))
         col.label(text=iface_("Edge length variation: {cv:.0f}%").format(cv=r.edge_cv * 100))
         if r.has_dev:
-            wrapped(col, iface_("Distance to source (avg / max): {avg:.2f}% / {mx:.2f}%").format(
-                avg=r.dev_avg, mx=r.dev_max))
+            wrapped(
+                col,
+                iface_("Distance to source (avg / max): {avg:.2f}% / {mx:.2f}%").format(avg=r.dev_avg, mx=r.dev_max),
+            )
         if r.non_manifold:
             col.label(text=iface_("{count} non-manifold edges").format(count=r.non_manifold), icon="ERROR")
         if quad_pct < 90:

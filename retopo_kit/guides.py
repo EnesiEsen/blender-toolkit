@@ -1,6 +1,7 @@
 """Guide lines: curves (or selected edges) become seam + sharp edges on the source mesh, which QRemeshify keeps as
 hard lines, so the quads of the result follow them. The original seam/sharp state is stored and restored on clear.
 """
+
 import heapq
 
 import bmesh
@@ -151,8 +152,10 @@ def target_of(context):
 class RK_OT_draw_guide(Operator):
     bl_idname = "retopo_kit.draw_guide"
     bl_label = "Draw Guide"
-    bl_description = ("Create a guide curve and start the Draw tool with surface projection: drag on the model to draw "
-                      "lines the new quads should follow, then press Apply Guides")
+    bl_description = (
+        "Create a guide curve and start the Draw tool with surface projection: drag on the model to draw "
+        "lines the new quads should follow, then press Apply Guides"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod

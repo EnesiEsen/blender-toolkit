@@ -1,4 +1,5 @@
 """Turkish translation of the interface."""
+
 TR = {
     "UE5 Bridge": "UE5 Köprüsü",
     "Skeleton": "İskelet",
@@ -27,15 +28,11 @@ TR = {
     "Export Static Meshes": "Statik Mesh'leri Dışa Aktar",
     "Export Skeletal Meshes": "İskeletli Mesh'leri Dışa Aktar",
     "Export Animations": "Animasyonları Dışa Aktar",
-    "Only the horizontal movement of the hips is moved to the root bone (turning stays on the hips).":
-        "Yalnızca kalçanın yatay hareketi kök kemiğe taşınır (dönüş kalçada kalır).",
-    "'{name}' has {count} root bones ({roots}): UE5 needs exactly one.":
-        "'{name}' için {count} kök kemik var ({roots}): UE5 tam bir tane ister.",
+    "Only the horizontal movement of the hips is moved to the root bone (turning stays on the hips).": "Yalnızca kalçanın yatay hareketi kök kemiğe taşınır (dönüş kalçada kalır).",
+    "'{name}' has {count} root bones ({roots}): UE5 needs exactly one.": "'{name}' için {count} kök kemik var ({roots}): UE5 tam bir tane ister.",
     "'{name}' has no deform bones.": "'{name}' içinde deform kemiği yok.",
-    "'{name}' has scale or rotation on the object: apply it (Ctrl+A) before animating.":
-        "'{name}' objesinde ölçek ya da dönüş var: animasyondan önce uygula (Ctrl+A).",
-    "'{name}' keeps Blender's default name: UE5 can mistake it for a bone.":
-        "'{name}' Blender'ın varsayılan adını taşıyor: UE5 bunu kemik sanabilir.",
+    "'{name}' has scale or rotation on the object: apply it (Ctrl+A) before animating.": "'{name}' objesinde ölçek ya da dönüş var: animasyondan önce uygula (Ctrl+A).",
+    "'{name}' keeps Blender's default name: UE5 can mistake it for a bone.": "'{name}' Blender'ın varsayılan adını taşıyor: UE5 bunu kemik sanabilir.",
     "{count} problems found.": "{count} sorun bulundu.",
     "No problems found.": "Sorun bulunamadı.",
     "Nothing to export in the selection.": "Seçimde dışa aktarılacak bir şey yok.",
@@ -45,10 +42,8 @@ TR = {
     "No mesh is skinned to '{name}'.": "'{name}' iskeletine bağlı mesh yok.",
     "'{name}' has no animation to export.": "'{name}' için dışa aktarılacak animasyon yok.",
     "Root motion needs actions, not NLA tracks.": "Root motion için NLA track'i değil action gerekir.",
-    "'{hips}' must hang directly under the root bone for root motion.":
-        "Root motion için '{hips}' doğrudan kök kemiğin altında olmalı.",
-    "Could not find the hips bone: type its name in Hips Bone.":
-        "Kalça kemiği bulunamadı: adını Kalça Kemiği alanına yaz.",
+    "'{hips}' must hang directly under the root bone for root motion.": "Root motion için '{hips}' doğrudan kök kemiğin altında olmalı.",
+    "Could not find the hips bone: type its name in Hips Bone.": "Kalça kemiği bulunamadı: adını Kalça Kemiği alanına yaz.",
 }
 
 translations = {"tr_TR": {("*", key): value for key, value in TR.items()}}

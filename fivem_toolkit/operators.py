@@ -1,4 +1,5 @@
 """Operators: Doctor (scan, fix), Prop builder and the resource export."""
+
 import bpy
 from bpy.app.translations import pgettext_rpt as rpt_
 from bpy.props import IntProperty
@@ -30,8 +31,13 @@ def refresh(context):
 
 
 def issue_dict(item):
-    return {"severity": item.severity, "code": item.code, "object": item.object_name, "message": item.message,
-            "data": item.data}
+    return {
+        "severity": item.severity,
+        "code": item.code,
+        "object": item.object_name,
+        "message": item.message,
+        "data": item.data,
+    }
 
 
 class FK_OT_scan(Operator):
@@ -76,16 +82,21 @@ class FK_OT_fix_all(Operator):
     def execute(self, context):
         fixed, failed = doctor.fix_all(context, [issue_dict(i) for i in context.scene.fk_issues])
         remaining = refresh(context)
-        self.report({"WARNING" if failed else "INFO"}, rpt_("{fixed} fixed, {left} left.").format(
-            fixed=fixed, left=remaining) + (" " + failed[0] if failed else ""))
+        self.report(
+            {"WARNING" if failed else "INFO"},
+            rpt_("{fixed} fixed, {left} left.").format(fixed=fixed, left=remaining)
+            + (" " + failed[0] if failed else ""),
+        )
         return {"FINISHED"}
 
 
 class FK_OT_build_prop(Operator):
     bl_idname = "fivem_toolkit.build_prop"
     bl_label = "Build Props"
-    bl_description = ("Turn the selected meshes into FiveM props: Sollumz drawable, converted materials, LODs, "
-                      "collision, YTYP archetype and texture dictionary")
+    bl_description = (
+        "Turn the selected meshes into FiveM props: Sollumz drawable, converted materials, LODs, "
+        "collision, YTYP archetype and texture dictionary"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -131,8 +142,10 @@ def rigged_selection(context):
 class FK_OT_ped_retarget(Operator):
     bl_idname = "fivem_toolkit.ped_retarget"
     bl_label = "Retarget Weights"
-    bl_description = ("Rename and merge the vertex groups of the selected meshes onto GTA V bones; groups of bones the "
-                      "GTA skeleton lacks go to their nearest parent bone")
+    bl_description = (
+        "Rename and merge the vertex groups of the selected meshes onto GTA V bones; groups of bones the "
+        "GTA skeleton lacks go to their nearest parent bone"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -154,7 +167,8 @@ class FK_OT_ped_retarget(Operator):
             return {"CANCELLED"}
         refresh(context)
         message = rpt_("{mapped} GTA bones used, {merged} groups merged into parent bones.").format(
-            mapped=total["mapped"], merged=total["merged"])
+            mapped=total["mapped"], merged=total["merged"]
+        )
         if total["dropped"]:
             message += " " + rpt_("No match for: {names}").format(names=", ".join(total["dropped"][:6]))
         self.report({"WARNING" if total["dropped"] else "INFO"}, message)
@@ -176,8 +190,10 @@ class FK_OT_ped_mapping_sheet(Operator):
             lines += [f"{g.name} = " for g in ob.vertex_groups if not resolve(g.name)]
         sheet = bpy.data.texts.get(s.ped_mapping) or bpy.data.texts.new(s.ped_mapping)
         sheet.from_string("\n".join(lines))
-        self.report({"INFO"}, rpt_("Mapping sheet '{name}' written: fill in the GTA bone after each '='.").format(
-            name=sheet.name))
+        self.report(
+            {"INFO"},
+            rpt_("Mapping sheet '{name}' written: fill in the GTA bone after each '='.").format(name=sheet.name),
+        )
         return {"FINISHED"}
 
 
@@ -194,8 +210,10 @@ class FK_OT_mlo_template(Operator):
 
     def execute(self, context):
         root = mlo.create_template(context, context.scene.fk_settings.resource_name)
-        self.report({"INFO"}, rpt_("Created '{name}': rename the rooms, replace the shells with your models.").format(
-            name=root.name))
+        self.report(
+            {"INFO"},
+            rpt_("Created '{name}': rename the rooms, replace the shells with your models.").format(name=root.name),
+        )
         return {"FINISHED"}
 
 
@@ -218,8 +236,10 @@ class FK_OT_mlo_check(Operator):
 class FK_OT_build_mlo(Operator):
     bl_idname = "fivem_toolkit.build_mlo"
     bl_label = "Build Interior"
-    bl_description = ("Turn the room meshes into props, build the interior collision and fill the MLO archetype "
-                      "with rooms, portals and entities")
+    bl_description = (
+        "Turn the room meshes into props, build the interior collision and fill the MLO archetype "
+        "with rooms, portals and entities"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -236,5 +256,15 @@ class FK_OT_build_mlo(Operator):
         return {"FINISHED"}
 
 
-classes = (FK_OT_scan, FK_OT_fix, FK_OT_fix_all, FK_OT_build_prop, FK_OT_export, FK_OT_mlo_template,
-           FK_OT_mlo_check, FK_OT_build_mlo, FK_OT_ped_retarget, FK_OT_ped_mapping_sheet)
+classes = (
+    FK_OT_scan,
+    FK_OT_fix,
+    FK_OT_fix_all,
+    FK_OT_build_prop,
+    FK_OT_export,
+    FK_OT_mlo_template,
+    FK_OT_mlo_check,
+    FK_OT_build_mlo,
+    FK_OT_ped_retarget,
+    FK_OT_ped_mapping_sheet,
+)

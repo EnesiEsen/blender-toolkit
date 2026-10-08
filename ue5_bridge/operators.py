@@ -1,4 +1,5 @@
 """Operators: rig check and fix, and the three exports."""
+
 from bpy.app.translations import pgettext_rpt as rpt_
 from bpy.types import Operator
 
@@ -24,7 +25,11 @@ def refresh(context):
         for found in rig.scan(armature):
             item = context.scene.ue_issues.add()
             item.severity, item.code, item.object_name, item.message = (
-                found["severity"], found["code"], found["object"], found["message"])
+                found["severity"],
+                found["code"],
+                found["object"],
+                found["message"],
+            )
     return len(context.scene.ue_issues)
 
 
@@ -36,8 +41,9 @@ class UE_OT_check(Operator):
 
     def execute(self, context):
         count = refresh(context)
-        self.report({"INFO"}, rpt_("{count} problems found.").format(count=count) if count
-                    else rpt_("No problems found."))
+        self.report(
+            {"INFO"}, rpt_("{count} problems found.").format(count=count) if count else rpt_("No problems found.")
+        )
         return {"FINISHED"}
 
 
@@ -90,8 +96,9 @@ class ExportOperator(Operator):
         if not paths:
             self.report({"WARNING"}, rpt_("Nothing to export in the selection."))
             return {"CANCELLED"}
-        self.report({"INFO"}, rpt_("Exported {count} files to {folder}").format(count=len(paths),
-                                                                               folder=paths[0].parent))
+        self.report(
+            {"INFO"}, rpt_("Exported {count} files to {folder}").format(count=len(paths), folder=paths[0].parent)
+        )
         return {"FINISHED"}
 
 

@@ -1,4 +1,5 @@
 """Sidebar panels."""
+
 import textwrap
 
 from bpy.types import Panel
@@ -71,8 +72,11 @@ class UE_PT_animation(Panel):
         col.prop(s, "root_motion")
         if s.root_motion:
             col.prop(s, "hips_bone")
-            wrapped(layout, "Only the horizontal movement of the hips is moved to the root bone (turning stays on "
-                    "the hips).", icon="INFO")
+            wrapped(
+                layout,
+                "Only the horizontal movement of the hips is moved to the root bone (turning stays on the hips).",
+                icon="INFO",
+            )
         layout.operator("ue5_bridge.export_animations", icon="ACTION")
 
 

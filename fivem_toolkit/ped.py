@@ -5,6 +5,7 @@ to validate.
 Weights are never lost: groups that do not exist on the GTA skeleton are merged into the nearest ancestor bone that
 does, and a hidden backup of the mesh is kept before anything is changed.
 """
+
 import importlib
 import re
 import xml.etree.ElementTree as ET
@@ -28,8 +29,10 @@ def gta_bones():
         return {}
     if package not in _REGISTRY:
         path = importlib.import_module(f"{package}.tools.drawablehelper").BonePropertiesManager.dictionary_xml
-        items = [(int(n.find("Index").get("value")), int(n.find("ParentIndex").get("value")), n.findtext("Name"))
-                 for n in ET.parse(path).getroot()]
+        items = [
+            (int(n.find("Index").get("value")), int(n.find("ParentIndex").get("value")), n.findtext("Name"))
+            for n in ET.parse(path).getroot()
+        ]
         by_index = {index: name for index, _, name in items}
         _REGISTRY[package] = {name: by_index.get(parent) for _, parent, name in items}
     return _REGISTRY[package]
@@ -39,13 +42,18 @@ def split_side(name):
     """Side letter (L, R or None) and the name without rig prefix, in lower-case letters and digits only."""
     text = PREFIX.sub("", name)
     side = None
-    patterns = (r"^(left|right)[-_.:]?", r"[-_.:]?(left|right)$", r"[-_.:](l|r)$", r"^(l|r)[-_.:]",
-                r"[-_.:](l|r)[-_.:]")
+    patterns = (
+        r"^(left|right)[-_.:]?",
+        r"[-_.:]?(left|right)$",
+        r"[-_.:](l|r)$",
+        r"^(l|r)[-_.:]",
+        r"[-_.:](l|r)[-_.:]",
+    )
     for pattern in patterns:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             side = "L" if match.group(1).lower() in ("left", "l") else "R"
-            text = text[:match.start()] + "_" + text[match.end():]
+            text = text[: match.start()] + "_" + text[match.end() :]
             break
     return side, re.sub(r"[^a-z0-9]", "", text.lower())
 
@@ -53,15 +61,43 @@ def split_side(name):
 def to_gta(name):
     """Best guess of the GTA V bone that a bone of another rig (Mixamo, Rigify, generic) corresponds to, or None."""
     side, core = split_side(name)
-    fixed = {"hips": "SKEL_Pelvis", "pelvis": "SKEL_Pelvis", "spine": "SKEL_Spine0", "spine1": "SKEL_Spine1",
-             "spine001": "SKEL_Spine1", "spine2": "SKEL_Spine2", "spine002": "SKEL_Spine2", "chest": "SKEL_Spine2",
-             "spine3": "SKEL_Spine3", "spine003": "SKEL_Spine3", "neck": "SKEL_Neck_1", "head": "SKEL_Head"}
+    fixed = {
+        "hips": "SKEL_Pelvis",
+        "pelvis": "SKEL_Pelvis",
+        "spine": "SKEL_Spine0",
+        "spine1": "SKEL_Spine1",
+        "spine001": "SKEL_Spine1",
+        "spine2": "SKEL_Spine2",
+        "spine002": "SKEL_Spine2",
+        "chest": "SKEL_Spine2",
+        "spine3": "SKEL_Spine3",
+        "spine003": "SKEL_Spine3",
+        "neck": "SKEL_Neck_1",
+        "head": "SKEL_Head",
+    }
     if side is None:
         return fixed.get(core)
-    limbs = {"shoulder": "Clavicle", "clavicle": "Clavicle", "arm": "UpperArm", "upperarm": "UpperArm",
-             "forearm": "Forearm", "lowerarm": "Forearm", "hand": "Hand", "upleg": "Thigh", "thigh": "Thigh",
-             "upperleg": "Thigh", "leg": "Calf", "shin": "Calf", "calf": "Calf", "lowerleg": "Calf", "foot": "Foot",
-             "toebase": "Toe0", "toe": "Toe0", "toes": "Toe0", "ball": "Toe0"}
+    limbs = {
+        "shoulder": "Clavicle",
+        "clavicle": "Clavicle",
+        "arm": "UpperArm",
+        "upperarm": "UpperArm",
+        "forearm": "Forearm",
+        "lowerarm": "Forearm",
+        "hand": "Hand",
+        "upleg": "Thigh",
+        "thigh": "Thigh",
+        "upperleg": "Thigh",
+        "leg": "Calf",
+        "shin": "Calf",
+        "calf": "Calf",
+        "lowerleg": "Calf",
+        "foot": "Foot",
+        "toebase": "Toe0",
+        "toe": "Toe0",
+        "toes": "Toe0",
+        "ball": "Toe0",
+    }
     if core in limbs:
         return f"SKEL_{side}_{limbs[core]}"
     finger = re.match(r"^(?:hand|f)?(thumb|index|middle|ring|pinky|little)0?([1-3])$", core)
@@ -89,6 +125,7 @@ def make_resolver(gta, mapping):
         if key in mapping:
             return mapping[key]
         return lower.get(key) or (to_gta(name) if to_gta(name) in gta else None)
+
     return resolve
 
 
@@ -132,37 +169,82 @@ def scan_ped(ob):
     armature = armature_of(ob)
     gta = gta_bones()
     if armature is None:
-        found.append(doctor.issue(doctor.ERROR, "NO_ARMATURE", ob, rpt_("'{name}' has vertex groups but no Armature "
-                                                                      "modifier.").format(name=ob.name)))
+        found.append(
+            doctor.issue(
+                doctor.ERROR,
+                "NO_ARMATURE",
+                ob,
+                rpt_("'{name}' has vertex groups but no Armature modifier.").format(name=ob.name),
+            )
+        )
     names_by_index = {g.index: g.name for g in ob.vertex_groups}
     weights = vertex_weights(ob)
     unweighted = sum(1 for w in weights if not w)
     if unweighted:
-        found.append(doctor.issue(doctor.ERROR, "UNWEIGHTED", ob, rpt_(
-            "'{name}': {count} vertices have no bone weight.").format(name=ob.name, count=unweighted)))
+        found.append(
+            doctor.issue(
+                doctor.ERROR,
+                "UNWEIGHTED",
+                ob,
+                rpt_("'{name}': {count} vertices have no bone weight.").format(name=ob.name, count=unweighted),
+            )
+        )
     heavy = sum(1 for w in weights if len(w) > MAX_INFLUENCES)
     if heavy:
-        found.append(doctor.issue(doctor.WARNING, "INFLUENCES", ob, rpt_(
-            "'{name}': {count} vertices use more than {limit} bones.").format(name=ob.name, count=heavy,
-                                                                               limit=MAX_INFLUENCES)))
+        found.append(
+            doctor.issue(
+                doctor.WARNING,
+                "INFLUENCES",
+                ob,
+                rpt_("'{name}': {count} vertices use more than {limit} bones.").format(
+                    name=ob.name, count=heavy, limit=MAX_INFLUENCES
+                ),
+            )
+        )
     loose = sum(1 for w in weights if w and abs(sum(w.values()) - 1.0) > 0.01)
     if loose:
-        found.append(doctor.issue(doctor.WARNING, "NOT_NORMALIZED", ob, rpt_(
-            "'{name}': the weights of {count} vertices do not add up to 1.").format(name=ob.name, count=loose)))
+        found.append(
+            doctor.issue(
+                doctor.WARNING,
+                "NOT_NORMALIZED",
+                ob,
+                rpt_("'{name}': the weights of {count} vertices do not add up to 1.").format(name=ob.name, count=loose),
+            )
+        )
     used = {g for w in weights for g in w}
     empty = [n for i, n in names_by_index.items() if i not in used]
     if empty:
-        found.append(doctor.issue(doctor.INFO, "EMPTY_GROUPS", ob, rpt_("'{name}' has {count} empty vertex groups.")
-                                  .format(name=ob.name, count=len(empty))))
+        found.append(
+            doctor.issue(
+                doctor.INFO,
+                "EMPTY_GROUPS",
+                ob,
+                rpt_("'{name}' has {count} empty vertex groups.").format(name=ob.name, count=len(empty)),
+            )
+        )
     if gta:
         unknown = [n for n in names_by_index.values() if n not in gta]
         if unknown:
-            found.append(doctor.issue(doctor.WARNING, "UNKNOWN_BONE", ob, rpt_(
-                "'{name}': {count} vertex groups are not GTA bones (use Retarget Weights).").format(
-                    name=ob.name, count=len(unknown)), ", ".join(unknown[:20])))
+            found.append(
+                doctor.issue(
+                    doctor.WARNING,
+                    "UNKNOWN_BONE",
+                    ob,
+                    rpt_("'{name}': {count} vertex groups are not GTA bones (use Retarget Weights).").format(
+                        name=ob.name, count=len(unknown)
+                    ),
+                    ", ".join(unknown[:20]),
+                )
+            )
     if armature is not None and all(b.bone_properties.tag == 0 for b in armature.data.bones if b.parent):
-        found.append(doctor.issue(doctor.WARNING, "BONE_TAGS", armature, rpt_(
-            "The bones of '{name}' have no Sollumz bone tags.").format(name=armature.name)))
+        found.append(
+            doctor.issue(
+                doctor.WARNING,
+                "BONE_TAGS",
+                armature,
+                rpt_("The bones of '{name}' have no Sollumz bone tags.").format(name=armature.name),
+            )
+        )
     return found
 
 
@@ -213,8 +295,13 @@ def fix_bone_tags(context, item):
     bpy.ops.sollumz.apply_bone_properties_to_armature()
 
 
-FIXES = {"UNWEIGHTED": fix_unweighted, "INFLUENCES": fix_influences, "NOT_NORMALIZED": fix_normalize,
-         "EMPTY_GROUPS": fix_empty_groups, "BONE_TAGS": fix_bone_tags}
+FIXES = {
+    "UNWEIGHTED": fix_unweighted,
+    "INFLUENCES": fix_influences,
+    "NOT_NORMALIZED": fix_normalize,
+    "EMPTY_GROUPS": fix_empty_groups,
+    "BONE_TAGS": fix_bone_tags,
+}
 doctor.FIXES.update(FIXES)
 
 
@@ -264,10 +351,20 @@ def retarget(context, ob, target_armature=None, mapping_text="", keep_backup=Tru
         for modifier in ob.modifiers:
             if modifier.type == "ARMATURE":
                 modifier.object = target_armature
-    missing = sorted({n for n in (g.name for g in ob.vertex_groups)
-                      if target_armature is not None and n not in target_armature.data.bones})
-    return {"mapped": len(set(target.values())), "merged": merged, "dropped": dropped, "missing_in_armature": missing,
-            "backup": backup.name if backup else ""}
+    missing = sorted(
+        {
+            n
+            for n in (g.name for g in ob.vertex_groups)
+            if target_armature is not None and n not in target_armature.data.bones
+        }
+    )
+    return {
+        "mapped": len(set(target.values())),
+        "merged": merged,
+        "dropped": dropped,
+        "missing_in_armature": missing,
+        "backup": backup.name if backup else "",
+    }
 
 
 def scan(objects):

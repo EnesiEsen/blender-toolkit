@@ -12,6 +12,7 @@ The first portal of every interior should connect `limbo` to a room: that is the
 Portal corners follow Sollumz's own convention: counter-clockwise as seen from the `a` side. If CodeWalker shows a
 portal facing the wrong way, swap its two room names.
 """
+
 import re
 from dataclasses import dataclass
 
@@ -51,9 +52,8 @@ def read_layout(root):
         for child in collection.children:
             key = clean(child.name)
             if key.startswith(ROOM_PREFIX):
-                room = names.asset_name(key[len(ROOM_PREFIX):])
-                rooms.setdefault(room, []).extend(
-                    o for o in child.all_objects if o.type == "MESH" and not is_portal(o))
+                room = names.asset_name(key[len(ROOM_PREFIX) :])
+                rooms.setdefault(room, []).extend(o for o in child.all_objects if o.type == "MESH" and not is_portal(o))
             else:
                 walk(child)
 
@@ -80,8 +80,9 @@ def read_layout(root):
     for a, b, ob in portals:
         for room in (a, b):
             if room != LIMBO and room not in rooms:
-                problems.append(rpt_("Portal '{name}' refers to the unknown room '{room}'.").format(
-                    name=ob.name, room=room))
+                problems.append(
+                    rpt_("Portal '{name}' refers to the unknown room '{room}'.").format(name=ob.name, room=room)
+                )
     if portals and not any(LIMBO in (a, b) for a, b, _ in portals):
         problems.append(rpt_("No entrance: add a portal between '{limbo}' and one of the rooms.").format(limbo=LIMBO))
     if not portals and rooms:
@@ -178,8 +179,11 @@ def build(context, root, s):
 
     compat.select_only(context, composite, *drawables)
     return archetype, rpt_("MLO '{name}': {rooms} rooms, {portals} portals, {entities} entities").format(
-        name=mlo_name, rooms=len(layout.rooms) + (LIMBO not in layout.rooms), portals=len(layout.portals),
-        entities=len(meshes))
+        name=mlo_name,
+        rooms=len(layout.rooms) + (LIMBO not in layout.rooms),
+        portals=len(layout.portals),
+        entities=len(meshes),
+    )
 
 
 def create_template(context, name):
